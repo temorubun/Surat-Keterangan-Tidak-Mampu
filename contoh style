@@ -1,0 +1,1577 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kawe Nia • Layanan SKTM</title>
+  <style>
+    :root{
+      --bg:#0b1020;          /* page background */
+      --panel:#0f172a;       /* card base */
+      --ink:#e5e7eb;         /* main text */
+      --muted:#9ca3af;       /* secondary text */
+      --accent:#22c55e;      /* green accent */
+      --accent-2:#38bdf8;    /* blue accent */
+      --line:#1f2937;        /* hairline borders */
+      --danger:#ef4444;
+      --radius: 18px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --space: clamp(14px, 2.4vw, 22px);
+    }
+
+    /* ====== Reset kecil agar teks selalu wrap & tidak kepotong ====== */
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 600px at 20% -10%, #16223f 0%, transparent 60%),
+        linear-gradient(145deg,#0a0e1a,#0f1933 55%,#0a0e1a);
+    }
+    /* Pastikan SEMUA elemen bisa mengecil & membungkus teks panjang */
+    body, body *{
+      min-width:0;                   /* izinkan shrink di flex/grid */
+      overflow-wrap:anywhere;        /* bungkus kata sangat panjang/URL */
+      word-break:break-word;         /* jaga kalau ada string tanpa spasi */
+      white-space:normal;            /* jangan paksa satu baris */
+    }
+
+    .wrap{ max-width:1100px; margin:40px auto; padding:0 20px }
+
+    /* Header */
+    .topbar{ display:flex; align-items:center; gap:16px; margin-bottom:18px }
+    .brand{ display:flex; align-items:center; gap:12px; min-width:0 }
+    .brand img{
+      width:44px; height:44px; object-fit:cover; border-radius:10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.35)
+    }
+    .brand .title{ font-weight:700; font-size: clamp(16px,2.4vw,20px) }
+    .brand .sub{ font-size:12px; color:var(--muted) }
+    .pill{
+      margin-left:auto; display:flex; gap:8px; align-items:center; font-size:12px; color:#cbd5e1;
+      background:linear-gradient(180deg, rgba(56,189,248,.2), rgba(34,197,94,.15));
+      border:1px solid rgba(148,163,184,.3); padding:6px 10px; border-radius:999px;
+      flex-shrink:0;
+    }
+
+    /* Main Card */
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+      border:1px solid rgba(148,163,184,.2);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card-header{
+      display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between;
+      padding: clamp(14px, 2.2vw, 20px) var(--space);
+      background:
+        radial-gradient(800px 300px at 10% -20%, rgba(56,189,248,.15), transparent 60%),
+        radial-gradient(600px 300px at 90% -30%, rgba(34,197,94,.18), transparent 55%);
+      border-bottom:1px solid rgba(148,163,184,.2);
+    }
+    .hgroup{ display:flex; flex-direction:column; gap:4px; min-width:0 }
+    .h1{ font-size: clamp(18px, 2.8vw, 26px); font-weight:800; letter-spacing:.3px }
+    .h2{ font-size: 13px; color: var(--muted) }
+    .badges{ display:flex; gap:8px; flex-wrap:wrap; min-width:0 }
+    .badge{
+      font-size:12px; padding:6px 10px; border-radius:999px;
+      background:#0b1224; border:1px solid rgba(148,163,184,.26)
+    }
+    .badge.success{ border-color: rgba(34,197,94,.45); background: rgba(34,197,94,.12); color:#d1fae5 }
+    .badge.info{ border-color: rgba(56,189,248,.45); background: rgba(56,189,248,.12); color:#cffafe }
+
+    /* Content Grid */
+    .grid{
+      display:grid; grid-template-columns: 1.2fr .8fr; gap:0; min-height:360px;
+    }
+    @media (max-width: 960px){ .grid{ grid-template-columns: 1fr } }
+    @media (max-width: 960px){
+      .side{ background: transparent; }
+      .panel{ border-right: none; }
+    }
+
+    .panel{
+      padding: var(--space);
+      border-right:1px solid rgba(148,163,184,.16);
+    }
+    .panel:last-child{ border-right:none }
+
+    /* Section titles */
+    .stitle{
+      font-size:13px; letter-spacing:.4px; text-transform:uppercase;
+      color:#a5b4fc; font-weight:700; margin-bottom:10px
+    }
+
+    /* Identity table */
+    .ident{
+      display:grid;
+      grid-template-columns: 180px 12px 1fr; /* label : ':' : nilai */
+      gap:8px 12px; align-items:start; font-size:14px;
+      background: rgba(15,23,42,.55);
+      border:1px solid rgba(148,163,184,.15);
+      border-radius:14px; padding:14px;
+    }
+    /* Adaptasi label agar tidak memaksa potong saat layar kecil */
+    @media (max-width: 560px){
+      .ident{ grid-template-columns: 120px 10px 1fr }
+    }
+    .lab{ color:#cbd5e1 }
+    .sep{ color:#475569 }
+    .val{ color:#e5e7eb; font-weight:600; line-height:1.5 }
+
+    /* Keterangan list */
+    ol.ket{ margin:10px 0 0 18px; padding:0 }
+    ol.ket li{ margin:8px 0; line-height:1.5 }
+
+    .note{
+      margin-top:12px; font-size:12.5px; color:#a5b4fc;
+      background:rgba(99,102,241,.1);
+      border:1px dashed rgba(99,102,241,.35);
+      border-radius:12px; padding:10px 12px
+    }
+
+    /* Right panel: actions */
+    .side{
+      display:flex; flex-direction:column; gap:14px; padding: var(--space);
+      background: linear-gradient(180deg, rgba(2,6,23,.35), rgba(2,6,23,.15));
+    }
+    .callout{
+      border:1px solid rgba(56,189,248,.35); background: rgba(56,189,248,.1);
+      border-radius:14px; padding:12px 14px; font-size:13px; color:#e0f2fe
+    }
+    .actions{ display:flex; flex-wrap:wrap; gap:10px }
+    .btn{
+      appearance:none; border:none; cursor:pointer; font-weight:700; letter-spacing:.3px;
+      background:#0b1224; color:#e5e7eb; padding:10px 14px; border-radius:12px;
+      border:1px solid rgba(148,163,184,.3);
+    }
+    .btn.primary{
+      background: linear-gradient(180deg, rgba(34,197,94,.9), rgba(16,185,129,.9));
+      border-color: rgba(16,185,129,.9); color:#052e1a
+    }
+    .btn.ghost{ background: transparent }
+    .btn:active{ transform: translateY(1px) }
+
+    /* Edit mode styles */
+    .edit-mode .val {
+      display: none;
+    }
+    .edit-mode .edit-field {
+      display: block;
+    }
+    .edit-field {
+      display: none;
+      width: 100%;
+      background: rgba(15,23,42,.8);
+      border: 1px solid rgba(56,189,248,.4);
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: #e5e7eb;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .edit-field:focus {
+      outline: none;
+      border-color: rgba(56,189,248,.8);
+      box-shadow: 0 0 0 2px rgba(56,189,248,.2);
+    }
+    .edit-actions {
+      display: none;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .edit-mode .edit-actions {
+      display: flex;
+    }
+    .btn.success {
+      background: linear-gradient(180deg, rgba(34,197,94,.9), rgba(16,185,129,.9));
+      border-color: rgba(16,185,129,.9); 
+      color: #052e1a;
+    }
+    .btn.danger {
+      background: linear-gradient(180deg, rgba(239,68,68,.9), rgba(220,38,38,.9));
+      border-color: rgba(220,38,38,.9); 
+      color: #fef2f2;
+    }
+
+    /* File upload styles */
+    .file-upload-container {
+      background: rgba(15,23,42,.55);
+      border: 1px solid rgba(148,163,184,.15);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    
+    .file-info {
+      background: rgba(34,197,94,.1);
+      border: 1px solid rgba(34,197,94,.3);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #d1fae5;
+    }
+    
+    .file-info.error {
+      background: rgba(239,68,68,.1);
+      border-color: rgba(239,68,68,.3);
+      color: #fee2e2;
+    }
+    
+    .upload-progress {
+      width: 100%;
+      height: 4px;
+      background: rgba(148,163,184,.2);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+    
+    .upload-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e, #16a34a);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Uploaded files styles */
+    .uploaded-files-container {
+      background: rgba(15,23,42,.55);
+      border: 1px solid rgba(148,163,184,.15);
+      border-radius: 14px;
+      padding: 14px;
+      min-height: 60px;
+    }
+    
+    .no-files-message {
+      color: #9ca3af;
+      font-size: 13px;
+      text-align: center;
+      font-style: italic;
+    }
+    
+    .uploaded-file-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      background: rgba(34,197,94,.1);
+      border: 1px solid rgba(34,197,94,.3);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    
+    .uploaded-file-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .file-icon {
+      font-size: 16px;
+      color: #22c55e;
+      flex-shrink: 0;
+    }
+    
+    .file-details {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .file-name {
+      color: #d1fae5;
+      font-weight: 600;
+      margin-bottom: 2px;
+      word-break: break-all;
+    }
+    
+    .file-meta {
+      color: #a5b4fc;
+      font-size: 11px;
+    }
+    
+    .file-remove {
+      background: rgba(239,68,68,.1);
+      border: 1px solid rgba(239,68,68,.3);
+      color: #fee2e2;
+      border-radius: 4px;
+      padding: 4px 6px;
+      font-size: 10px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    
+    .file-remove:hover {
+      background: rgba(239,68,68,.2);
+    }
+
+    /* Footer */
+    .card-footer{
+      display:flex; gap:14px; justify-content:space-between; align-items:center;
+      padding: 12px var(--space); border-top:1px solid rgba(148,163,184,.2);
+      color:var(--muted); font-size:12px
+    }
+
+    /* Custom Popup Styles */
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+    
+    .popup {
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border: 1px solid rgba(148,163,184,.3);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.5);
+      position: relative;
+      animation: popupSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes popupSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    .popup-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    
+    .popup-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #e5e7eb;
+      margin-bottom: 15px;
+      letter-spacing: 0.5px;
+    }
+    
+    .popup-message {
+      font-size: 14px;
+      color: #cbd5e1;
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+    
+    .popup-btn {
+      background: linear-gradient(180deg, rgba(34,197,94,.9), rgba(16,185,129,.9));
+      border: none;
+      color: #052e1a;
+      padding: 12px 30px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .popup-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(34,197,94,.3);
+    }
+    
+    .popup-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Print */
+    @media print{
+      .side{ display:none }
+      body{ background:#fff }
+      .card{ border:none; box-shadow:none }
+      .pill{ display:none }
+      .popup-overlay{ display:none !important }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="brand">
+        <img class="logo" src="{{ $json.LogoURL }}" alt="Lambang Kabupaten">
+        <div>
+          <div class="title">Kawe Nia • Pelayanan Masyarakat</div>
+          <div class="sub">Distrik Wania, Kabupaten Mimika</div>
+        </div>
+      </div>
+      <div class="pill">Layanan aktif • 24/7</div>
+    </div>
+
+    <!-- Main Card -->
+    <section class="card" role="region" aria-label="Layanan SKTM">
+      <header class="card-header">
+        <div class="hgroup">
+          <div class="h1">Surat Keterangan Tidak Mampu (SKTM)</div>
+          <div class="h2">Nomor:
+            <span class="mono">{{ $json.body.nomorSurat || '400.2.1 / — / 2025' }}</span>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="badge info">Kepala Distrik: Belum Ditandatangani</span>
+        </div>
+      </header>
+
+      <div class="grid">
+        <!-- Left: Data & Keterangan -->
+        <div class="panel">
+          <div class="stitle">Data Pemohon</div> 
+          <button class="btn ghost" onclick="toggleEditMode()" id="editBtn" style="margin-bottom: 12px;">✏️ Edit Data</button>
+          <div class="ident" aria-label="Identitas Pemohon">
+            <div class="lab">Nama</div><div class="sep">:</div>
+            <div class="val">{{ $json.body.nama || 'MUSDAHLIFA' }}</div>
+            <input type="text" class="edit-field" id="editNama" value="{{ $json.body.nama || 'MUSDAHLIFA' }}" placeholder="Masukkan nama lengkap">
+            
+            <div class="lab">NIK</div><div class="sep">:</div>
+            <div class="val mono">{{ $json.body.nik || '9109011408790006' }}</div>
+            <input type="text" class="edit-field" id="editNIK" value="{{ $json.body.nik || '9109011408790006' }}" placeholder="Masukkan NIK">
+            
+            <div class="lab">Tempat/Tgl Lahir</div><div class="sep">:</div>
+            <div class="val">{{ $json.body.ttl || 'SERUI, 14-08-1979' }}</div>
+            <input type="text" class="edit-field" id="editTTL" value="{{ $json.body.ttl || 'SERUI, 14-08-1979' }}" placeholder="Contoh: Jakarta, 15 Januari 1990">
+            
+            <div class="lab">Agama</div><div class="sep">:</div>
+            <div class="val">{{ $json.body.agama || 'ISLAM' }}</div>
+            <input type="text" class="edit-field" id="editAgama" value="{{ $json.body.agama || 'ISLAM' }}" placeholder="Masukkan agama">
+            
+            <div class="lab">Jenis Kelamin</div><div class="sep">:</div>
+            <div class="val">{{ $json.body.jenisKelamin || 'LAKI-LAKI' }}</div>
+            <select class="edit-field" id="editJenisKelamin">
+              <option value="LAKI-LAKI" {{ $json.body.jenisKelamin == 'LAKI-LAKI' ? 'selected' : '' }}>Laki-laki</option>
+              <option value="PEREMPUAN" {{ $json.body.jenisKelamin == 'PEREMPUAN' ? 'selected' : '' }}>Perempuan</option>
+            </select>
+            
+            <div class="lab">Status Perkawinan</div><div class="sep">:</div>
+            <div class="val">{{ $json.body.statusPerkawinan || 'KAWIN' }}</div>
+            <select class="edit-field" id="editStatusPerkawinan">
+              <option value="BELUM KAWIN" {{ $json.body.statusPerkawinan == 'BELUM KAWIN' ? 'selected' : '' }}>Belum Kawin</option>
+              <option value="KAWIN" {{ $json.body.statusPerkawinan == 'KAWIN' ? 'selected' : '' }}>Kawin</option>
+              <option value="CERAI HIDUP" {{ $json.body.statusPerkawinan == 'CERAI HIDUP' ? 'selected' : '' }}>Cerai Hidup</option>
+              <option value="CERAI MATI" {{ $json.body.statusPerkawinan == 'CERAI MATI' ? 'selected' : '' }}>Cerai Mati</option>
+            </select>
+            
+            <div class="lab">Pekerjaan</div><div class="sep">:</div>
+            <div class="val">{{ $json.body.pekerjaan || 'PEGAWAI NEGERI SIPIL (PNS)' }}</div>
+            <input type="text" class="edit-field" id="editPekerjaan" value="{{ $json.body.pekerjaan || 'PEGAWAI NEGERI SIPIL (PNS)' }}" placeholder="Masukkan pekerjaan">
+            
+            <div class="lab">Alamat</div><div class="sep">:</div>
+            <div class="val">{{ $json.body.alamat || 'JL. SERAYU NO.305' }}</div>
+            <textarea class="edit-field" id="editAlamat" placeholder="Masukkan alamat lengkap" rows="2">{{ $json.body.alamat || 'JL. SERAYU NO.305' }}</textarea>
+          </div>
+          
+          <!-- Uploaded Files Section -->
+          <div class="stitle" style="margin-top:16px">File yang Diupload</div>
+          <div id="uploadedFilesList" class="uploaded-files-container">
+            <div class="no-files-message">Belum ada file yang diupload</div>
+          </div>
+          
+          <div class="edit-actions">
+            <button class="btn success" onclick="saveChanges()">💾 Simpan Perubahan</button>
+            <button class="btn danger" onclick="cancelEdit()">❌ Batal</button>
+          </div>
+
+          <div class="stitle" style="margin-top:16px">Keterangan</div>
+          <ol class="ket">
+            <li>
+              Pemohon tercatat sebagai penduduk <b>Kelurahan {{ $json.body.kelurahan || 'Kamoro Jaya' }}</b>,
+              Kecamatan {{ $json.body.kecamatan || 'Wania' }}, Kabupaten {{ $json.body.kabupaten || 'Mimika' }}.
+            </li>
+            <li>
+              Berdasarkan data kelayakan, pemohon berstatus ekonomi lemah dan memerlukan dukungan pembiayaan <b>BPJS/KIS</b>.
+            </li>
+            <li>
+              Dokumen ini disiapkan untuk keperluan administrasi terkait layanan kesehatan dan sosial.
+            </li>
+          </ol>
+          <div class="note">
+            Catatan: Periksa Data Sebelum Buat Surat.
+          </div>
+        </div>
+
+        <!-- Right: Actions & Meta -->
+        <aside class="side">
+          <div class="stitle">Tindakan</div>
+          <div class="actions">
+            <button class="btn primary" onclick="generateAndSendLetter()">Buat Surat & Kirim Data</button>
+            <button class="btn danger" onclick="deleteLetterAndData()">Hapus Surat & Hapus Data</button>
+          </div>
+
+          <div class="stitle" style="margin-top:10px">Ringkasan</div>
+          <div class="callout">
+            <div><b>Operator:</b> {{ $json.body.operator || 'Kawe Nia' }}</div>
+            <div><b>Tanggal:</b> {{ new Date($json.body.tanggal || '8/24/2025').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) }}</div>
+            <div><b>Referensi:</b> {{ $json.body.sessionId || '1756042304685' }}</div>
+          </div>
+
+          <div class="stitle" style="margin-top:10px">Lampiran Opsional</div>
+          <div class="callout" style="border-color:rgba(239,68,68,.45); background:rgba(239,68,68,.08); color:#fee2e2">
+            <div>Foto rumah, surat keterangan RT/RW, atau kartu BPJS dapat dilampirkan di sini.</div>
+          </div>
+          
+          <div class="stitle" style="margin-top:10px">Upload File</div>
+          <div class="file-upload-container">
+            <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display: none;">
+            <button class="btn ghost" onclick="document.getElementById('fileInput').click()" style="width: 100%; margin-bottom: 8px;">
+              📁 Pilih File
+            </button>
+            <div style="font-size: 11px; color: #9ca3af; text-align: center; margin-bottom: 8px;">
+              Atau drag & drop file ke sini
+            </div>
+            <div id="fileInfo" style="font-size: 12px; color: #cbd5e1; margin-bottom: 8px; display: none;"></div>
+            <button class="btn primary" id="uploadBtn" onclick="uploadFile()" style="width: 100%; display: none;">
+              📤 Kirim File
+            </button>
+          </div>
+          
+
+        </aside>
+      </div>
+
+      <footer class="card-footer">
+        <div>© {{ (new Date()).getFullYear() }} Pemerintah Distrik Wania • Kawe Nia</div>
+      </footer>
+    </section>
+  </div>
+
+  <!-- Custom Popup for Create Letter -->
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup">
+      <div class="popup-icon">📄</div>
+      <div class="popup-title">Surat Berhasil Dibuat</div>
+      <div class="popup-message">
+        Data dan surat Anda sudah berhasil dikirim ke kantor. Mohon tunggu notifikasi selanjutnya untuk tanda tangan dari Kepala Distrik.
+      </div>
+      <button class="popup-btn" onclick="closePopup()">OK</button>
+    </div>
+  </div>
+
+  <script>
+    /*
+    ====== STRUKTUR DATA LENGKAP UNTUK SEMUA TOMBOL ======
+    
+    Setiap tombol (Kirim Data, Update, Hapus, Upload File, Hapus File) sekarang mengirim data yang sama dan lengkap:
+    
+    1. BASIC LETTER DATA:
+       - nomorSurat, nama, nik, ttl, agama, jenisKelamin, statusPerkawinan, pekerjaan, alamat
+    
+    2. LOCATION DATA:
+       - kelurahan, kecamatan, kabupaten
+    
+    3. METADATA:
+       - operator, tanggal, timestamp, action (create/update/delete/upload/deleteFile)
+    
+    4. FILE DATA:
+       - uploadedFiles (array), totalFiles, fileNames
+    
+    5. SYSTEM DATA:
+       - currentUrl, WAHA_Trigger_payload_from
+    
+    6. ADDITIONAL METADATA:
+       - sessionId, userAgent, screenResolution, timezone, language
+    
+    7. ORIGINAL DATA:
+       - originalData (untuk perbandingan saat edit mode)
+    
+    Semua data ini dikirim ke webhook yang sesuai untuk setiap aksi.
+    
+    ✅ ERROR HANDLING: Semua JSON.stringify dan JSON.parse sekarang memiliki error handling
+    untuk mencegah "unexpected end of data" errors.
+    */
+    
+    let isEditMode = false;
+    let originalData = {};
+    let uploadedFiles = []; // Initialize as empty array to prevent undefined errors
+
+    // Helper function to get complete data for all buttons
+    // This ensures all buttons send the same comprehensive data structure
+    function getCompleteData(action = '') {
+      // Ensure uploadedFiles is always an array
+      const safeUploadedFiles = Array.isArray(uploadedFiles) ? uploadedFiles : [];
+      
+      return {
+        // ====== BASIC LETTER DATA ======
+        nomorSurat: document.querySelector('.mono')?.textContent || '400.2.1 / — / ' + new Date().getFullYear(),
+        nama: document.querySelector('.ident .val')?.textContent || '—',
+        nik: document.querySelectorAll('.ident .val')[1]?.textContent || '—',
+        ttl: document.querySelectorAll('.ident .val')[2]?.textContent || '—',
+        agama: document.querySelectorAll('.ident .val')[3]?.textContent || '—',
+        jenisKelamin: document.querySelectorAll('.ident .val')[4]?.textContent || '—',
+        statusPerkawinan: document.querySelectorAll('.ident .val')[5]?.textContent || '—',
+        pekerjaan: document.querySelectorAll('.ident .val')[6]?.textContent || '—',
+        alamat: document.querySelectorAll('.ident .val')[7]?.textContent || '—',
+        
+        // ====== LOCATION DATA ======
+        kelurahan: 'Kamoro Jaya',
+        kecamatan: 'Wania',
+        kabupaten: 'Mimika',
+        
+        // ====== METADATA ======
+        operator: 'Kawe Nia',
+        tanggal: new Date().toLocaleDateString(),
+        timestamp: new Date().toISOString(),
+        action: action || 'unknown', // 'create', 'update', 'delete', 'upload', 'deleteFile'
+        
+        // ====== FILE DATA ======
+        uploadedFiles: safeUploadedFiles, // Array of uploaded files
+        totalFiles: safeUploadedFiles.length,
+        fileNames: safeUploadedFiles.map(f => f.name || 'unknown').join(', '),
+        
+        // ====== SYSTEM DATA ======
+        currentUrl: window.location.href || '',
+        WAHA_Trigger_payload_from: '{{ $json.body.WAHA_Trigger_payload_from }}' || '6285230047347@c.us',
+        
+        // ====== ADDITIONAL METADATA ======
+        sessionId: Date.now().toString(),
+        userAgent: navigator.userAgent || '',
+        screenResolution: `${screen.width || 0}x${screen.height || 0}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown',
+        language: navigator.language || 'unknown',
+        
+        // ====== ORIGINAL DATA FOR COMPARISON ======
+        originalData: originalData || {} // For edit mode comparison
+      };
+    }
+
+    function showPopup() {
+      document.getElementById('popupOverlay').style.display = 'flex';
+    }
+
+    function closePopup() {
+      document.getElementById('popupOverlay').style.display = 'none';
+    }
+
+    function showSaveSuccessPopup() {
+      // Create and show custom save success popup
+      const savePopup = document.createElement('div');
+      savePopup.className = 'popup-overlay';
+      savePopup.id = 'saveSuccessPopup';
+      savePopup.innerHTML = `
+        <div class="popup">
+          <div class="popup-icon">💾</div>
+          <div class="popup-title">Data Berhasil Diperbarui</div>
+          <div class="popup-message">
+            Perubahan data pemohon telah berhasil disimpan.
+          </div>
+          <button class="popup-btn" onclick="closeSaveSuccessPopup()">OK</button>
+        </div>
+      `;
+      document.body.appendChild(savePopup);
+      savePopup.style.display = 'flex';
+    }
+
+    function closeSaveSuccessPopup() {
+      const popup = document.getElementById('saveSuccessPopup');
+      if (popup) {
+        popup.remove();
+      }
+    }
+
+    function showDeleteSuccessPopup() {
+      // Create and show custom delete success popup
+      const deleteSuccessPopup = document.createElement('div');
+      deleteSuccessPopup.className = 'popup-overlay';
+      deleteSuccessPopup.id = 'deleteSuccessPopup';
+      deleteSuccessPopup.innerHTML = `
+        <div class="popup">
+          <div class="popup-icon" style="color: #10b981;">🗑️</div>
+          <div class="popup-title" style="color: #10b981;">Data Berhasil Dihapus</div>
+          <div class="popup-message">
+            Surat dan data pemohon berhasil dihapus dari sistem.<br><br>
+            Halaman akan di-refresh untuk membersihkan tampilan.
+          </div>
+          <button class="popup-btn" onclick="closeDeleteSuccessPopup()">OK</button>
+        </div>
+      `;
+      document.body.appendChild(deleteSuccessPopup);
+      deleteSuccessPopup.style.display = 'flex';
+    }
+
+    function closeDeleteSuccessPopup() {
+      const popup = document.getElementById('deleteSuccessPopup');
+      if (popup) {
+        popup.remove();
+      }
+      // Refresh the page after closing popup
+      window.location.reload();
+    }
+
+    async function generateAndSendLetter() {
+      // Show confirmation popup first
+      showCreateLetterConfirmation();
+    }
+
+    function showCreateLetterConfirmation() {
+      // Create and show custom confirmation popup
+      const confirmPopup = document.createElement('div');
+      confirmPopup.className = 'popup-overlay';
+      confirmPopup.id = 'createLetterConfirmationPopup';
+      confirmPopup.innerHTML = `
+        <div class="popup" style="max-width: 500px;">
+          <div class="popup-icon" style="color: #3b82f6;">📋</div>
+          <div class="popup-title" style="color: #3b82f6;">Konfirmasi Buat Surat</div>
+          <div class="popup-message">
+            Mohon periksa kembali data sebelum dikirim, karena setelah dikirim data tidak dapat diubah.<br><br>
+            Surat yang dikirim akan tersimpan hingga proses penandatanganan selesai. Setelah surat dan data ditandatangani, sistem akan menghapusnya secara otomatis.<br><br>
+            <strong>Apakah Anda yakin ingin membuat dan mengirim surat ini?</strong>
+          </div>
+          <div style="display: flex; gap: 12px; justify-content: center;">
+            <button class="popup-btn" onclick="closeCreateLetterConfirmation()" style="background: linear-gradient(180deg, rgba(148,163,184,.9), rgba(100,116,139,.9)); color: #e5e7eb;">Batal</button>
+            <button class="popup-btn" onclick="confirmCreateLetter()" style="background: linear-gradient(180deg, rgba(34,197,94,.9), rgba(16,185,129,.9)); color: #052e1a;">Buat Surat</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(confirmPopup);
+      confirmPopup.style.display = 'flex';
+    }
+
+    function closeCreateLetterConfirmation() {
+      const popup = document.getElementById('createLetterConfirmationPopup');
+      if (popup) {
+        popup.remove();
+      }
+    }
+
+    async function confirmCreateLetter() {
+      // Close the confirmation popup
+      closeCreateLetterConfirmation();
+      
+      // ✅ SEMUA DATA LENGKAP: Basic letter data, location data, metadata, file data, system data, additional metadata
+      
+      // Disable the original "Buat Surat & Kirim Data" button
+      const originalButton = document.querySelector('button[onclick="generateAndSendLetter()"]');
+      if (originalButton) {
+        originalButton.disabled = true;
+        originalButton.textContent = 'Terkirim';
+        originalButton.style.opacity = '0.6';
+        originalButton.style.cursor = 'not-allowed';
+      }
+      
+      // Hide the edit data button
+      const editBtn = document.getElementById('editBtn');
+      if (editBtn) {
+        editBtn.style.display = 'none';
+      }
+      
+      // Hide the delete button
+      const deleteButton = document.querySelector('button[onclick="deleteLetterAndData()"]');
+      if (deleteButton) {
+        deleteButton.style.display = 'none';
+      }
+      
+      try {
+        // Collect complete form data using helper function
+        const letterData = getCompleteData('create');
+
+        // Send data to webhook with safe JSON handling
+        let requestBody;
+        try {
+          requestBody = JSON.stringify(letterData);
+        } catch (error) {
+          // Fallback: create a simplified version
+          requestBody = JSON.stringify({
+            nomorSurat: letterData.nomorSurat || 'unknown',
+            nama: letterData.nama || 'unknown',
+            action: letterData.action || 'create',
+            timestamp: new Date().toISOString(),
+            error: 'Data serialization failed'
+          });
+        }
+        
+        const response = await fetch('https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/65348fcc-8a51-4117-ad0b-bfe5ca66a5b2', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: requestBody
+        });
+
+        if (response.ok) {
+          // Show custom popup
+          showPopup();
+          // Hide the edit data button
+          const editBtn = document.getElementById('editBtn');
+          if (editBtn) {
+            editBtn.style.display = 'none';
+          }
+        } else {
+          throw new Error('HTTP ' + response.status);
+        }
+      } catch (error) {
+        // Silent error handling for production
+        
+        // Re-enable button on error
+        button.disabled = false;
+        button.textContent = originalText;
+        button.style.opacity = '1';
+        button.style.cursor = 'pointer';
+      }
+    }
+
+    function toggleEditMode() {
+      const card = document.querySelector('.card');
+      const editBtn = document.getElementById('editBtn');
+      
+      if (!isEditMode) {
+        // Enter edit mode
+        card.classList.add('edit-mode');
+        editBtn.textContent = '👁️ Lihat Data';
+        editBtn.classList.remove('ghost');
+        editBtn.classList.add('info');
+        
+        // Store original data
+        originalData = {
+          nama: document.querySelector('#editNama').value,
+          nik: document.querySelector('#editNIK').value,
+          ttl: document.querySelector('#editTTL').value,
+          agama: document.querySelector('#editAgama').value,
+          jenisKelamin: document.querySelector('#editJenisKelamin').value,
+          statusPerkawinan: document.querySelector('#editStatusPerkawinan').value,
+          pekerjaan: document.querySelector('#editPekerjaan').value,
+          alamat: document.querySelector('#editAlamat').value
+        };
+        
+        isEditMode = true;
+      } else {
+        // Exit edit mode
+        card.classList.remove('edit-mode');
+        editBtn.textContent = '✏️ Edit Data';
+        editBtn.classList.remove('info');
+        editBtn.classList.add('ghost');
+        isEditMode = false;
+      }
+    }
+
+    async function saveChanges() {
+      try {
+        // ✅ SEMUA DATA LENGKAP: Basic letter data, location data, metadata, file data, system data, additional metadata
+        // Collect complete updated data using helper function
+        const updatedData = getCompleteData('update');
+        
+        // Override with edit field values
+        updatedData.nama = document.querySelector('#editNama').value || '—';
+        updatedData.nik = document.querySelector('#editNIK').value || '—';
+        updatedData.ttl = document.querySelector('#editTTL').value || '—';
+        updatedData.agama = document.querySelector('#editAgama').value || '—';
+        updatedData.jenisKelamin = document.querySelector('#editJenisKelamin').value || '—';
+        updatedData.statusPerkawinan = document.querySelector('#editStatusPerkawinan').value || '—';
+        updatedData.pekerjaan = document.querySelector('#editPekerjaan').value || '—';
+        updatedData.alamat = document.querySelector('#editAlamat').value || '—';
+
+        // Update the display values
+        const valElements = document.querySelectorAll('.ident .val');
+        valElements[0].textContent = updatedData.nama || '—';
+        valElements[1].textContent = updatedData.nik || '—';
+        valElements[2].textContent = updatedData.ttl || '—';
+        valElements[3].textContent = updatedData.agama || '—';
+        valElements[4].textContent = updatedData.jenisKelamin || '—';
+        valElements[5].textContent = updatedData.statusPerkawinan || '—';
+        valElements[6].textContent = updatedData.pekerjaan || '—';
+        valElements[7].textContent = updatedData.alamat || '—';
+
+        // Send updated data to webhook with safe JSON handling
+        let requestBody;
+        try {
+          requestBody = JSON.stringify(updatedData);
+        } catch (error) {
+          // Fallback: create a simplified version
+          requestBody = JSON.stringify({
+            nomorSurat: updatedData.nomorSurat || 'unknown',
+            nama: updatedData.nama || 'unknown',
+            action: updatedData.action || 'update',
+            timestamp: new Date().toISOString(),
+            error: 'Data serialization failed'
+          });
+        }
+        
+        const response = await fetch('https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/f6af9e69-7491-47d6-838b-d41135383308', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: requestBody
+        });
+
+        if (response.ok) {
+          // Show custom popup with updated message
+          showSaveSuccessPopup();
+          // Exit edit mode
+          toggleEditMode();
+        } else {
+          throw new Error('HTTP ' + response.status);
+        }
+      } catch (error) {
+        // Silent error handling for production
+      }
+    }
+
+    function cancelEdit() {
+      // Restore original data
+      document.querySelector('#editNama').value = originalData.nama || '';
+      document.querySelector('#editNIK').value = originalData.nik || '';
+      document.querySelector('#editTTL').value = originalData.ttl || '';
+      document.querySelector('#editAgama').value = originalData.agama || '';
+      document.querySelector('#editJenisKelamin').value = originalData.jenisKelamin || 'Laki-laki';
+      document.querySelector('#editStatusPerkawinan').value = originalData.statusPerkawinan || 'Belum Kawin';
+      document.querySelector('#editPekerjaan').value = originalData.pekerjaan || '';
+      document.querySelector('#editAlamat').value = originalData.alamat || '';
+      
+      // Exit edit mode
+      toggleEditMode();
+    }
+
+    async function deleteLetterAndData() {
+      // Show custom delete confirmation popup
+      showDeleteConfirmation();
+    }
+
+    function showDeleteConfirmation() {
+      // Create and show custom delete confirmation popup
+      const deletePopup = document.createElement('div');
+      deletePopup.className = 'popup-overlay';
+      deletePopup.id = 'deleteConfirmationPopup';
+      deletePopup.innerHTML = `
+        <div class="popup" style="max-width: 450px;">
+          <div class="popup-icon" style="color: #fbbf24;">⚠️</div>
+          <div class="popup-title" style="color: #fbbf24;">Konfirmasi Hapus</div>
+          <div class="popup-message">
+            Apakah Anda yakin ingin menghapus surat dan data ini?<br><br>
+            <strong>Tindakan ini bersifat permanen dan tidak dapat dipulihkan.</strong>
+          </div>
+          <div style="display: flex; gap: 12px; justify-content: center;">
+            <button class="popup-btn" onclick="closeDeleteConfirmation()" style="background: linear-gradient(180deg, rgba(148,163,184,.9), rgba(100,116,139,.9)); color: #e5e7eb;">Batal</button>
+            <button class="popup-btn" onclick="confirmDelete()" style="background: linear-gradient(180deg, rgba(239,68,68,.9), rgba(220,38,38,.9)); color: #fef2f2;">Hapus</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(deletePopup);
+      deletePopup.style.display = 'flex';
+    }
+
+    function closeDeleteConfirmation() {
+      const popup = document.getElementById('deleteConfirmationPopup');
+      if (popup) {
+        popup.remove();
+      }
+    }
+
+    async function confirmDelete() {
+      // Close the confirmation popup
+      closeDeleteConfirmation();
+      
+      // Disable the delete button to prevent multiple clicks
+      const button = event.target;
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = '⏳ Menghapus...';
+      button.style.opacity = '0.6';
+      button.style.cursor = 'not-allowed';
+      
+            try {
+        // ✅ SEMUA DATA LENGKAP: Basic letter data, location data, metadata, file data, system data, additional metadata
+        // Collect complete current data for deletion using helper function
+        const deleteData = getCompleteData('delete');
+
+        // Send delete request to webhook with safe JSON handling
+        let requestBody;
+        try {
+          requestBody = JSON.stringify(deleteData);
+        } catch (error) {
+          // Fallback: create a simplified version
+          requestBody = JSON.stringify({
+            nomorSurat: deleteData.nomorSurat || 'unknown',
+            nama: deleteData.nama || 'unknown',
+            action: deleteData.action || 'delete',
+            timestamp: new Date().toISOString(),
+            error: 'Data serialization failed'
+          });
+        }
+        
+        const response = await fetch('https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/36a4b4c0-bc68-4179-8838-b6f1d15131ae', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: requestBody
+        });
+
+        if (response.ok) {
+          // Show custom delete success popup
+          showDeleteSuccessPopup();
+          // Clear all form fields
+          document.querySelectorAll('.edit-field').forEach(field => {
+            field.value = '';
+          });
+          
+          // Clear display values
+          document.querySelectorAll('.ident .val').forEach(val => {
+            val.textContent = '—';
+          });
+          
+          // Reset select fields to default values
+          document.querySelector('#editJenisKelamin').value = 'Laki-laki';
+          document.querySelector('#editStatusPerkawinan').value = 'Belum Kawin';
+          
+        } else {
+          throw new Error('HTTP ' + response.status);
+        }
+      } catch (error) {
+        // Silent error handling for production
+        
+        // Re-enable button on error
+        button.disabled = false;
+        button.textContent = originalText;
+        button.style.opacity = '1';
+        button.style.cursor = 'pointer';
+      }
+    }
+
+    // File upload functionality
+    let selectedFile = null;
+    // uploadedFiles is already declared above
+
+    // Add event listener for file input
+    document.addEventListener('DOMContentLoaded', function() {
+      const fileInput = document.getElementById('fileInput');
+      fileInput.addEventListener('change', handleFileSelect);
+      
+      // Initialize uploaded files from JSON data
+      initializeUploadedFilesFromJSON();
+      
+      // Initialize uploaded files display
+      updateUploadedFilesDisplay();
+      
+      // Add drag and drop functionality
+      const uploadContainer = document.querySelector('.file-upload-container');
+      if (uploadContainer) {
+        uploadContainer.addEventListener('dragover', handleDragOver);
+        uploadContainer.addEventListener('drop', handleDrop);
+        uploadContainer.addEventListener('dragleave', handleDragLeave);
+      }
+    });
+
+    // Function to initialize uploaded files from JSON data
+    function initializeUploadedFilesFromJSON() {
+      try {
+        // Check if there's file data in the JSON
+        const jsonData = {
+          fileName: '{{ $json.body.fileName }}' || '',
+          fileSize: '{{ $json.body.fileSize }}' || '',
+          fileType: '{{ $json.body.fileType }}' || '',
+          uploadDate: '{{ $json.body.uploadDate }}' || new Date().toISOString(),
+          action: '{{ $json.body.action }}' || 'upload'
+        };
+
+        // If there's valid file data, add it to uploadedFiles
+        if (jsonData.fileName && jsonData.fileName !== 'undefined' && jsonData.fileSize && !isNaN(parseInt(jsonData.fileSize))) {
+          const existingFile = {
+            id: Date.now().toString(), // Generate a temporary ID
+            name: jsonData.fileName,
+            size: parseInt(jsonData.fileSize),
+            type: jsonData.fileType || 'unknown',
+            uploadDate: jsonData.uploadDate || new Date().toISOString(),
+            webhookResponse: {
+              fileName: jsonData.fileName,
+              fileSize: jsonData.fileSize,
+              fileType: jsonData.fileType,
+              uploadDate: jsonData.uploadDate,
+              action: jsonData.action
+            },
+            status: 'success'
+          };
+
+          // Check if file already exists to avoid duplicates
+          const fileExists = uploadedFiles.some(file => file.name === existingFile.name);
+          if (!fileExists) {
+            uploadedFiles.push(existingFile);
+          }
+        }
+
+        // Also check for any files in uploadedFiles array from JSON
+        const uploadedFilesFromJSON = '{{ $json.body.uploadedFiles }}' || '[]';
+        if (uploadedFilesFromJSON !== '[]') {
+          try {
+            const parsedFiles = JSON.parse(uploadedFilesFromJSON);
+            if (Array.isArray(parsedFiles) && parsedFiles.length > 0) {
+              parsedFiles.forEach(file => {
+                // Only add valid files
+                if (file && file.name && file.name !== 'undefined' && file.size && !isNaN(file.size) && file.size > 0) {
+                  const fileExists = uploadedFiles.some(existingFile => existingFile.name === file.name);
+                  if (!fileExists) {
+                    uploadedFiles.push({
+                      ...file,
+                      status: 'success'
+                    });
+                  }
+                }
+              });
+              // Files initialized successfully
+            }
+          } catch (error) {
+            // Silent error handling for production
+          }
+        }
+
+      } catch (error) {
+        // Silent error handling for production
+      }
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.currentTarget.style.borderColor = 'rgba(56,189,248,.8)';
+      e.currentTarget.style.background = 'rgba(56,189,248,.1)';
+    }
+
+    function handleDragLeave(e) {
+      e.preventDefault();
+      e.currentTarget.style.borderColor = 'rgba(148,163,184,.15)';
+      e.currentTarget.style.background = 'rgba(15,23,42,.55)';
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      e.currentTarget.style.borderColor = 'rgba(148,163,184,.15)';
+      e.currentTarget.style.background = 'rgba(15,23,42,.55)';
+      
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        const fileInput = document.getElementById('fileInput');
+        fileInput.files = files;
+        handleFileSelect({ target: fileInput });
+      }
+    }
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      const fileInfo = document.getElementById('fileInfo');
+      const uploadBtn = document.getElementById('uploadBtn');
+      
+      if (file) {
+        // Check file size (max 10MB)
+        const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+        if (file.size > maxSize) {
+          fileInfo.innerHTML = `❌ File terlalu besar (${(file.size / 1024 / 1024).toFixed(1)}MB). Maksimal 10MB.`;
+          fileInfo.className = 'file-info error';
+          fileInfo.style.display = 'block';
+          uploadBtn.style.display = 'none';
+          selectedFile = null;
+          return;
+        }
+        
+        // Check file type
+        const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
+        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+        
+        if (!allowedTypes.includes(fileExtension)) {
+          fileInfo.innerHTML = `❌ Tipe file tidak didukung. Gunakan: PDF, JPG, PNG, DOC, DOCX`;
+          fileInfo.className = 'file-info error';
+          fileInfo.style.display = 'block';
+          uploadBtn.style.display = 'none';
+          selectedFile = null;
+          return;
+        }
+        
+        // File is valid
+        selectedFile = file;
+        const fileSize = (file.size / 1024 / 1024).toFixed(2);
+        fileInfo.innerHTML = `✅ ${file.name}<br>📏 Ukuran: ${fileSize}MB<br>📅 Tipe: ${file.type || 'Unknown'}`;
+        fileInfo.className = 'file-info';
+        fileInfo.style.display = 'block';
+        uploadBtn.style.display = 'block';
+      } else {
+        fileInfo.style.display = 'none';
+        uploadBtn.style.display = 'none';
+        selectedFile = null;
+      }
+    }
+
+    async function uploadFile() {
+      if (!selectedFile) {
+        return;
+      }
+
+      const uploadBtn = document.getElementById('uploadBtn');
+      const originalText = uploadBtn.textContent;
+      
+      // Disable upload button
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = '⏳ Mengupload...';
+      uploadBtn.style.opacity = '0.6';
+      uploadBtn.style.cursor = 'not-allowed';
+
+      try {
+        // Create FormData to send file
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        
+        // ✅ SEMUA DATA LENGKAP: Basic letter data, location data, metadata, file data, system data, additional metadata
+        // Add complete metadata using helper function
+        const completeData = getCompleteData('upload');
+        
+        // Add file-specific data
+        formData.append('fileName', selectedFile.name);
+        formData.append('fileSize', selectedFile.size);
+        formData.append('fileType', selectedFile.type);
+        formData.append('uploadDate', new Date().toISOString());
+        
+        // Add all complete data with safe JSON handling
+        Object.keys(completeData).forEach(key => {
+          try {
+            if (typeof completeData[key] === 'object' && completeData[key] !== null) {
+              formData.append(key, JSON.stringify(completeData[key]));
+            } else {
+              formData.append(key, completeData[key] || '');
+            }
+          } catch (error) {
+            formData.append(key, '');
+          }
+        });
+
+        // Send file to webhook
+        const response = await fetch('https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/2a6252f8-1e02-4880-9d53-405c888cbbd2', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.ok) {
+          // --- Ambil dan normalisasi respons ---
+          let responseData;
+          try {
+            responseData = await response.json();
+          } catch (e) {
+            responseData = null; // biarkan null agar mudah dideteksi
+          }
+          
+          // Jika respons berupa array dari n8n/Drive, ambil item pertama; jika objek, pakai apa adanya
+          const respObj = Array.isArray(responseData) ? responseData[0] : responseData || {};
+          
+          // Ekstrak ID Google Drive dari berbagai kemungkinan key
+          const driveId =
+            respObj.id ||
+            respObj.fileId ||
+            respObj.file_id ||
+            (respObj.data && (respObj.data.id || respObj.data.fileId)) ||
+            null;
+          
+          // Jangan pakai timestamp sebagai id jika tak perlu; simpan terpisah sebagai driveId
+          const newFile = {
+            driveId: driveId,                              // <-- inilah ID Drive yang sesungguhnya
+            id: driveId || null,                           // (opsional) untuk kompatibilitas tampilan
+            name: selectedFile.name,
+            size: selectedFile.size,
+            type: selectedFile.type,
+            uploadDate: new Date().toISOString(),
+            webhookResponse: responseData,                 // simpan mentah untuk debugging
+            status: driveId ? 'success' : 'pending'        // tandai pending jika belum ada driveId
+          };
+          
+          uploadedFiles.push(newFile);
+ 
+          // Update the display
+          updateUploadedFilesDisplay();
+          
+          // Show success popup with file details
+          showFileUploadSuccessPopup(newFile, responseData);
+          
+          // Reset file input
+          document.getElementById('fileInput').value = '';
+          document.getElementById('fileInfo').style.display = 'none';
+          uploadBtn.style.display = 'none';
+          selectedFile = null;
+          
+        } else {
+          throw new Error('HTTP ' + response.status);
+        }
+      } catch (error) {
+        // Silent error handling for production
+      } finally {
+        // Re-enable upload button
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = originalText;
+        uploadBtn.style.opacity = '1';
+        uploadBtn.style.cursor = 'pointer';
+      }
+    }
+
+    function showFileUploadSuccessPopup(newFile, responseData) {
+      const uploadSuccessPopup = document.createElement('div');
+      uploadSuccessPopup.className = 'popup-overlay';
+      uploadSuccessPopup.id = 'fileUploadSuccessPopup';
+      
+      uploadSuccessPopup.innerHTML = `
+        <div class="popup">
+          <div class="popup-icon">📤</div>
+          <div class="popup-title">File Berhasil Diupload</div>
+          <div class="popup-message">
+            File <strong>${newFile.name}</strong> telah berhasil dikirim ke sistem.
+          </div>
+          <button class="popup-btn" onclick="closeFileUploadSuccessPopup()">OK</button>
+        </div>
+      `;
+      document.body.appendChild(uploadSuccessPopup);
+      uploadSuccessPopup.style.display = 'flex';
+    }
+
+    function closeFileUploadSuccessPopup() {
+      const popup = document.getElementById('fileUploadSuccessPopup');
+      if (popup) {
+        popup.remove();
+      }
+    }
+
+    // Function to get file icon based on file type
+    function getFileIcon(fileType) {
+      if (fileType.includes('pdf')) return '📄';
+      if (fileType.includes('image')) return '🖼️';
+      if (fileType.includes('word') || fileType.includes('document')) return '📝';
+      return '📎';
+    }
+
+    // Function to format file size
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Function to update uploaded files display
+    function updateUploadedFilesDisplay() {
+      const container = document.getElementById('uploadedFilesList');
+      
+      // Filter out invalid files (files with undefined name, size, or invalid data)
+      const validFiles = uploadedFiles.filter(file => 
+        file && 
+        file.name && 
+        file.name !== 'undefined' && 
+        file.size && 
+        !isNaN(file.size) && 
+        file.size > 0
+      );
+      
+      if (validFiles.length === 0) {
+        container.innerHTML = '<div class="no-files-message">Belum ada file yang diupload</div>';
+        return;
+      }
+      
+      // Add summary header
+      let html = `
+        <div style="margin-bottom: 12px; padding: 8px 12px; background: rgba(56,189,248,.1); border: 1px solid rgba(56,189,248,.3); border-radius: 8px; font-size: 12px; color: #e0f2fe;">
+          📁 Total: <strong>${validFiles.length}</strong> file • 📏 Total ukuran: <strong>${formatFileSize(validFiles.reduce((sum, file) => sum + (file.size || 0), 0))}</strong>
+        </div>
+      `;
+      
+      // Add each valid file
+      html += validFiles.map((file, index) => {
+        const originalIndex = uploadedFiles.indexOf(file);
+        const uploadDate = file.uploadDate ? new Date(file.uploadDate) : new Date();
+        const isValidDate = !isNaN(uploadDate.getTime());
+        
+        return `
+          <div class="uploaded-file-item">
+            <div class="file-icon">${getFileIcon(file.type || 'unknown')}</div>
+            <div class="file-details">
+              <div class="file-name">${file.name || 'Unknown File'}</div>
+              <div class="file-meta">
+                ${formatFileSize(file.size || 0)} • ${isValidDate ? uploadDate.toLocaleString('id-ID') : 'Invalid Date'}
+                ${file.id ? ` • ID: ${file.id}` : ''}
+              </div>
+              ${file.status ? `<div style="font-size: 10px; color: #22c55e; margin-top: 2px;">✅ ${file.status}</div>` : ''}
+            </div>
+            <button class="file-remove" onclick="removeUploadedFile(${originalIndex})" title="Hapus file ini">🗑️</button>
+          </div>
+        `;
+      }).join('');
+      
+      container.innerHTML = html;
+    }
+
+    // Function to remove uploaded file
+    async function removeUploadedFile(index) {
+      const file = uploadedFiles[index];
+      
+      // Show confirmation popup first
+      showFileDeleteConfirmation(file, index);
+    }
+
+    function showFileDeleteConfirmation(file, index) {
+      const deleteConfirmPopup = document.createElement('div');
+      deleteConfirmPopup.className = 'popup-overlay';
+      deleteConfirmPopup.id = 'fileDeleteConfirmationPopup';
+      deleteConfirmPopup.innerHTML = `
+        <div class="popup" style="max-width: 500px;">
+          <div class="popup-icon" style="color: #fbbf24;">⚠️</div>
+          <div class="popup-title" style="color: #fbbf24;">Konfirmasi Hapus File</div>
+          <div class="popup-message" style="text-align: left;">
+            Apakah Anda yakin ingin menghapus file ini?<br><br>
+            <strong>File:</strong> ${file.name}<br>
+            <strong>Ukuran:</strong> ${formatFileSize(file.size)}<br>
+            <strong>ID:</strong> ${file.id || 'N/A'}<br><br>
+            <strong>Tindakan ini bersifat permanen dan tidak dapat dipulihkan.</strong>
+          </div>
+          <div style="display: flex; gap: 12px; justify-content: center;">
+            <button class="popup-btn" onclick="closeFileDeleteConfirmation()" style="background: linear-gradient(180deg, rgba(148,163,184,.9), rgba(100,116,139,.9)); color: #e5e7eb;">Batal</button>
+            <button class="popup-btn" onclick="confirmFileDelete(${index})" style="background: linear-gradient(180deg, rgba(239,68,68,.9), rgba(220,38,38,.9)); color: #fef2f2;">Hapus File</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(deleteConfirmPopup);
+      deleteConfirmPopup.style.display = 'flex';
+    }
+
+    function closeFileDeleteConfirmation() {
+      const popup = document.getElementById('fileDeleteConfirmationPopup');
+      if (popup) {
+        popup.remove();
+      }
+    }
+
+    async function confirmFileDelete(index) {
+      // Close the confirmation popup
+      closeFileDeleteConfirmation();
+      
+      const file = uploadedFiles[index];
+      
+      if (file && file.webhookResponse) {
+        try {
+          // ✅ SEMUA DATA LENGKAP: Basic letter data, location data, metadata, file data, system data, additional metadata
+          // Send delete request with complete data using helper function
+          const deleteData = {
+            // Include all original webhook response data
+            ...file.webhookResponse,
+            
+            // Get complete data using helper function
+            ...getCompleteData('deleteFile'),
+            
+            // File deletion specific data
+            deleteAction: 'removeFile',
+            deleteTimestamp: new Date().toISOString(),
+            deletedFileName: file.name,
+            deletedFileId: file.id
+          };
+
+          // Send delete file request with safe JSON handling
+          let requestBody;
+          try {
+            requestBody = JSON.stringify(deleteData);
+          } catch (error) {
+            // Fallback: create a simplified version
+            requestBody = JSON.stringify({
+              deletedFileName: file.name || 'unknown',
+              action: 'deleteFile',
+              timestamp: new Date().toISOString(),
+              error: 'Data serialization failed'
+            });
+          }
+          
+          const response = await fetch('https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/490d8fa6-6e29-44b9-a57e-58b02ca17f39', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: requestBody
+          });
+
+          if (response.ok) {
+                      // Get response data to show what was deleted
+          let responseData;
+          try {
+            responseData = await response.json();
+          } catch (error) {
+            responseData = {};
+          }
+            
+            // Remove file from local array
+            uploadedFiles.splice(index, 1);
+            updateUploadedFilesDisplay();
+            
+            // Show success message with remaining files info
+            showFileDeleteSuccessPopup(file, responseData);
+            
+            // File deleted successfully
+            
+          } else {
+            throw new Error('HTTP ' + response.status);
+          }
+        } catch (error) {
+          // Silent error handling for production
+        }
+      } else {
+        // If no webhook response data, just remove from local array
+        uploadedFiles.splice(index, 1);
+        updateUploadedFilesDisplay();
+        showFileDeleteSuccessPopup(file, {});
+      }
+    }
+
+    function showFileDeleteSuccessPopup(deletedFile, responseData) {
+      const deleteSuccessPopup = document.createElement('div');
+      deleteSuccessPopup.className = 'popup-overlay';
+      deleteSuccessPopup.id = 'fileDeleteSuccessPopup';
+      
+      // Create detailed message with deletion info and remaining files
+      let message = `File <strong>${deletedFile.name}</strong> telah berhasil dihapus dari sistem.<br><br>`;
+      message += `<strong>Detail File yang Dihapus:</strong><br>`;
+      message += `📏 Ukuran: ${formatFileSize(deletedFile.size)}<br>`;
+      message += `🆔 ID: ${deletedFile.id || 'N/A'}<br><br>`;
+      
+      if (responseData && Object.keys(responseData).length > 0) {
+        message += `<strong>Response dari Server:</strong><br>`;
+        message += `<small style="color: #a5b4fc;">${JSON.stringify(responseData, null, 2)}</small><br><br>`;
+      }
+      
+      message += `<strong>File yang Tersisa:</strong> <strong>${uploadedFiles.length}</strong> file<br><br>`;
+      
+      if (uploadedFiles.length > 0) {
+        message += `<strong>Daftar File Tersisa:</strong><br>`;
+        uploadedFiles.forEach((file, index) => {
+          message += `${index + 1}. ${file.name} (${formatFileSize(file.size)})<br>`;
+        });
+      } else {
+        message += `<em>Tidak ada file tersisa</em>`;
+      }
+      
+      deleteSuccessPopup.innerHTML = `
+        <div class="popup" style="max-width: 600px;">
+          <div class="popup-icon">🗑️</div>
+          <div class="popup-title">File Berhasil Dihapus</div>
+          <div class="popup-message" style="text-align: left;">
+            ${message}
+          </div>
+          <button class="popup-btn" onclick="closeFileDeleteSuccessPopup()">OK</button>
+        </div>
+      `;
+      document.body.appendChild(deleteSuccessPopup);
+      deleteSuccessPopup.style.display = 'flex';
+    }
+
+    function closeFileDeleteSuccessPopup() {
+      const popup = document.getElementById('fileDeleteSuccessPopup');
+      if (popup) {
+        popup.remove();
+      }
+    }
+  </script>
+</body>
+</html>

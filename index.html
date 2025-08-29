@@ -1,87 +1,184 @@
 <!doctype html>
 <html lang="id">
+
+<!doctype html>
+<html lang="id">
 <head>
   <meta charset="utf-8" />
-  <title>Editor JSON + File Upload • View/Download/Delete per Item</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Surat Keterangan Tidak Mampu (SKTM)</title>
   <link rel="stylesheet" href="style.css">
+  <style></style>
 </head>
 <body>
-    <input type="file" id="fileInput" multiple>
-  <script src="script.js"></script>
-    });
-    if(!resp.ok) throw new Error('HTTP '+resp.status+' — '+(await resp.text()).slice(0,200));
-    ustat2.textContent='Update sukses ✓';
-    await load();
-  }catch(e){ ustat2.textContent='Error: '+e.message; }
-  finally{ updateBtn.disabled=false; }
-});
+  <div class="wrap">
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="brand">
+        <img class="logo" src="logo.png" alt="Lambang Kabupaten">
+        <div>
+          <div class="title">Kawe Nia • Pelayanan Masyarakat</div>
+          <div class="sub">Distrik Wania, Kabupaten Mimika</div>
+        </div>
+      </div>
+      <div class="pill">Layanan aktif • 24/7</div>
+    </div>
 
-upBtn.addEventListener('click', async()=>{
-  try{
-    if(!lastObj && !lastJSON){ ust.textContent='Belum ada data'; return; }
-    const files=Array.from(fileInput.files||[]);
-    if(files.length===0){ ust.textContent='Pilih minimal satu file.'; return; }
+    <!-- Main Card -->
+    <section class="card" role="region" aria-label="Layanan SKTM">
+      <header class="card-header">
+        <div class="hgroup">
+          <div class="h1">Surat Keterangan Tidak Mampu (SKTM)</div>
+          <div class="h2">Nomor: <span class="mono">400.2.1 / — / 2025</span></div>
+        </div>
+        <div class="badges">
+          <span class="badge info">Kepala Distrik: Belum Ditandatangani</span>
+        </div>
+      </header>
 
-    upBtn.disabled=true; ust.textContent='Mengupload…';
 
-    const baseObj=lastObj||(Array.isArray(lastJSON)?lastJSON[0]:lastJSON)||{};
-    const edited=buildPayload(baseObj);
+      <div class="grid">
+        <!-- Left: Data & Keterangan -->
+        <div class="panel">
+          <div class="stitle">Data Pemohon</div>
+          <button class="btn ghost" style="margin-bottom: 12px;">✏️ Edit Data</button>
+          <form id="pemohonForm">
+            <div class="ident" aria-label="Identitas Pemohon">
+              <div class="lab">Nama</div><div class="sep">:</div>
+              <input type="text" id="p_nama" placeholder="Nama" class="val" />
+              <div class="lab">NIK</div><div class="sep">:</div>
+              <input type="text" id="p_nik" placeholder="NIK" class="val mono" />
+              <div class="lab">Tempat/Tgl Lahir</div><div class="sep">:</div>
+              <input type="text" id="p_ttl" placeholder="Tempat/Tgl Lahir" class="val" />
+              <div class="lab">Agama</div><div class="sep">:</div>
+              <input type="text" id="p_agama" placeholder="Agama" class="val" />
+              <div class="lab">Jenis Kelamin</div><div class="sep">:</div>
+              <select id="p_jk" class="val">
+                <option value="LAKI-LAKI">Laki-laki</option>
+                <option value="PEREMPUAN">Perempuan</option>
+              </select>
+              <div class="lab">Status Perkawinan</div><div class="sep">:</div>
+              <select id="p_status" class="val">
+                <option value="BELUM KAWIN">Belum Kawin</option>
+                <option value="KAWIN">Kawin</option>
+                <option value="CERAI HIDUP">Cerai Hidup</option>
+                <option value="CERAI MATI">Cerai Mati</option>
+              </select>
+              <div class="lab">Pekerjaan</div><div class="sep">:</div>
+              <input type="text" id="p_pekerjaan" placeholder="Pekerjaan" class="val" />
+              <div class="lab">Alamat</div><div class="sep">:</div>
+              <input type="text" id="p_alamat" placeholder="Alamat" class="val" />
+              <div class="lab">Kelurahan</div><div class="sep">:</div>
+              <input type="text" id="p_kelurahan" placeholder="Kelurahan" class="val" />
+              <div class="lab">Kecamatan</div><div class="sep">:</div>
+              <input type="text" id="p_kecamatan" placeholder="Kecamatan" class="val" />
+              <div class="lab">Kota/Kabupaten</div><div class="sep">:</div>
+              <input type="text" id="p_kota" placeholder="Kota/Kabupaten" class="val" />
+              <div class="lab">Provinsi</div><div class="sep">:</div>
+              <input type="text" id="p_prov" placeholder="Provinsi" class="val" />
+              <div class="lab">Domisili</div><div class="sep">:</div>
+              <input type="text" id="p_domisili" placeholder="Domisili" class="val" />
+            </div>
+            <div class="row">
+              <label for="jenis_surat">Jenis Surat:</label>
+              <input type="text" id="jenis_surat" placeholder="Jenis Surat" />
+              <label for="nomor_surat">Nomor Surat:</label>
+              <input type="text" id="nomor_surat" placeholder="Nomor Surat" />
+              <label for="tanggal_surat">Tanggal Surat:</label>
+              <input type="text" id="tanggal_surat" placeholder="Tanggal Surat" />
+              <label for="operator">Operator:</label>
+              <input type="text" id="operator" placeholder="Operator" />
+            </div>
+          </form>
+          <div id="status" class="note"></div>
+          <div id="output" style="display:none"></div>
 
-    let dataPayload;
-    if(Array.isArray(lastJSON)){ const arr=[...lastJSON]; arr[0]={...edited,id_user:ID_USER}; dataPayload=arr; }
-    else { dataPayload={...edited,id_user:ID_USER}; }
+          <div class="stitle" style="margin-top:16px">File yang Diupload</div>
+          <table class="uploaded-files-container" style="width:100%">
+            <thead>
+              <tr><th>Nama File</th><th>Aksi</th><th>ID</th><th>Tipe</th><th>Ukuran</th></tr>
+            </thead>
+            <tbody id="uploadedFilesTbody"></tbody>
+          </table>
+          <div id="delDocStatus" class="note"></div>
 
-    const files_info=files.map(f=>({name:f.name,size:f.size,type:f.type||null}));
-    const form=new FormData();
-    form.append('data', JSON.stringify(dataPayload));
-    form.append('id_user', ID_USER);
-    form.append('files_info', JSON.stringify(files_info));
-    for(const f of files) form.append('files[]', f, f.name);
+          <div class="stitle" style="margin-top:16px">Keterangan</div>
+          <ol class="ket">
+            <li>
+              Pemohon tercatat sebagai penduduk <b id="p_kelurahan_view">Kelurahan Kamoro Jaya</b>, Kecamatan <span id="p_kecamatan_view">Wania</span>, Kabupaten <span id="p_kota_view">Mimika</span>.
+            </li>
+            <li>
+              Berdasarkan data kelayakan, pemohon berstatus ekonomi lemah dan memerlukan dukungan pembiayaan <b>BPJS/KIS</b>.
+            </li>
+            <li>
+              Dokumen ini disiapkan untuk keperluan administrasi terkait layanan kesehatan dan sosial.
+            </li>
+          </ol>
+          <div class="note">
+            Catatan: Periksa Data Sebelum Buat Surat.
+          </div>
+        </div>
 
-    const resp=await fetch('https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/1ae8a1a1-9f9d-4792-8505-9c84e1d3654b',{ method:'POST', body:form });
-    const text=await resp.text();
-    if(!resp.ok) throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));
+        <!-- Right: Actions & Meta -->
+        <aside class="side">
+          <div class="stitle">Tindakan</div>
 
-    ust.textContent='Upload sukses ✓';
-    fileInput.value=''; // reset input file
-    await load();
-  }catch(e){ ust.textContent='Upload gagal: '+e.message; }
-  finally{ upBtn.disabled=false; }
-});
+          <div class="actions">
+            <button class="btn primary" id="sendBtn">Buat Surat & Kirim Data</button>
+            <button class="btn danger" id="updateBtn">Update Data</button>
+            <button class="btn" id="uploadBtn">Upload File</button>
+          </div>
+          <div id="sendStatus" class="note"></div>
+          <div id="updateStatus" class="note"></div>
+          <div id="uploadStatus" class="note"></div>
 
-/* ================== Hapus Dokumen ================== */
-async function deleteDocumentsByFileIds(fileIds=[]){
-  if(!fileIds.length) return;
-  if(!confirm('Hapus '+fileIds.length+' dokumen?\n'+fileIds.join('\n'))) return;
-  try{
-    delDocStatus.textContent='Memproses…';
-    const base=lastObj||(Array.isArray(lastJSON)?lastJSON[0]:lastJSON)||{};
-    const filtered=JSON.parse(JSON.stringify(base));
-    const docs=Array.isArray(filtered.dokumen)?filtered.dokumen:[];
-    filtered.dokumen = normalizeDokumen(docs).filter(d=>!fileIds.includes(d?.file_id));
+          <div class="stitle" style="margin-top:10px">Ringkasan</div>
+          <div class="callout">
+            <div><b>Operator:</b> Kawe Nia</div>
+            <div><b>Tanggal:</b> 29 Agustus 2025</div>
+            <div><b>Referensi:</b> 1756042304685</div>
+          </div>
 
-    let overwritePayload;
-    if(Array.isArray(lastJSON)){ const arr=[...lastJSON]; arr[0]={...filtered,id_user:ID_USER}; overwritePayload=arr; }
-    else { overwritePayload={...filtered,id_user:ID_USER}; }
+          <div class="stitle" style="margin-top:10px">Lampiran Opsional</div>
+          <div class="callout" style="border-color:rgba(239,68,68,.45); background:rgba(239,68,68,.08); color:#fee2e2">
+            <div>Foto rumah, surat keterangan RT/RW, atau kartu BPJS dapat dilampirkan di sini.</div>
+          </div>
 
-    const resp=await fetch('https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/e1863045-3bfd-497d-b8a3-fc2c7c23eaa7',{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ action:'DELETE_DOCS', id_user:ID_USER, delete_file_ids:fileIds, data:overwritePayload })
-    });
+          <div class="stitle" style="margin-top:10px">Upload File</div>
+          <div class="file-upload-container">
+            <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display: none;">
+            <button class="btn ghost" onclick="document.getElementById('fileInput').click()" style="width: 100%; margin-bottom: 8px;">
+              📁 Pilih File
+            </button>
+            <div style="font-size: 11px; color: #9ca3af; text-align: center; margin-bottom: 8px;">
+              Atau drag & drop file ke sini
+            </div>
+            <div id="fileInfo" style="font-size: 12px; color: #cbd5e1; margin-bottom: 8px; display: none;"></div>
+            <button class="btn primary" id="uploadBtn" style="width: 100%; display: none;">
+              📤 Kirim File
+            </button>
+          </div>
+        </aside>
+      </div>
 
-    if(!resp.ok){ const t=await resp.text(); throw new Error('HTTP '+resp.status+' — '+t.slice(0,200)); }
-    delDocStatus.textContent='Dokumen dihapus & data ditimpa ✓';
-    await load();
-  }catch(e){ delDocStatus.textContent='Gagal: '+e.message; }
-}
+      <footer class="card-footer">
+        <div>© 2025 Pemerintah Distrik Wania • Kawe Nia</div>
+      </footer>
+    </section>
+  </div>
 
-uploadedFilesTbody.addEventListener('click',(ev)=>{
-  const btn=ev.target.closest('.tight-del');
-  if(!btn) return;
-  const fid=btn.getAttribute('data-fileid');
-  if(fid) deleteDocumentsByFileIds([fid]);
-});
-</script>
+  <!-- Custom Popup for Create Letter -->
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup">
+      <div class="popup-icon">📄</div>
+      <div class="popup-title">Surat Berhasil Dibuat</div>
+      <div class="popup-message">
+        Data dan surat Anda sudah berhasil dikirim ke kantor. Mohon tunggu notifikasi selanjutnya untuk tanda tangan dari Kepala Distrik.
+      </div>
+      <button class="popup-btn" onclick="closePopup()">OK</button>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
 </body>
 </html>
