@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <title>Editor JSON + File Upload • View/Download/Delete per Item</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{ --bg:#0b1020; --panel:#0f172a; --ink:#e5e7eb; --muted:#9ca3af; --accent:#22c55e; --danger:#ef4444; --line:#1f2937; --radius:14px; }
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--ink);margin:0;padding:20px}
+    h1{font-size:20px;margin:0 0 12px}
+    .status{font-size:12px;color:var(--muted);margin:4px 0 12px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin:10px 0}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0}
+    label{font-size:12px;color:var(--muted)}
+    input,select{width:100%;padding:10px;border-radius:10px;border:1px solid #223049;background:#0b1326;color:var(--ink)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .btn{background:var(--accent);border:none;color:#052e1a;font-weight:700;padding:10px 14px;border-radius:10px;cursor:pointer}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn-danger{background:var(--danger);color:#fff}
+    pre{background:#091022;border:1px solid var(--line);border-radius:12px;padding:12px;overflow:auto;white-space:pre-wrap;word-wrap:break-word}
+    code.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+    th{color:#aab0bd;font-weight:600}
+    .nowrap{white-space:nowrap}
+    .actions{display:flex;gap:8px}
+    .linklike{color:#9bdcff;text-decoration:underline;cursor:pointer}
+    @media (max-width:760px){ .grid,.grid3{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <h1>Realtime JSON Editor</h1>
+
+  <div class="row">
+    <span class="status">Sumber: <code class="mono" id="src"></code></span>
+  </div>
+
+  <div class="row">
+    <label style="display:flex;gap:8px;align-items:center">
+      <input type="checkbox" id="pauseEdit" />
+      Tahan update saat mengedit
+    </label>
+
+    <button class="btn" id="sendBtn">Kirim JSON (Create)</button>
+    <span class="status" id="sendStatus">—</span>
+
+    <button class="btn" id="updateBtn">Ubah Data (Update JSON)</button>
+    <span class="status" id="updateStatus">—</span>
+  </div>
+
+  <div class="row">
+    <input type="file" id="fileInput" multiple>
+    <button class="btn" id="uploadBtn">Upload file + JSON</button>
+    <span class="status" id="uploadStatus">—</span>
+  </div>
+
+  <div class="card">
+    <div class="grid">
+      <div><label>Jenis Surat</label><input id="jenis_surat"></div>
+      <div><label>Nomor Surat</label><input id="nomor_surat"></div>
+      <div><label>Tanggal Surat</label><input id="tanggal_surat"></div>
+      <div><label>Operator</label><input id="operator"></div>
+    </div>
+
+    <h3 style="margin:14px 0 8px">Data Pemohon</h3>
+    <div class="grid3">
+      <div><label>Nama</label><input id="p_nama"></div>
+      <div><label>NIK</label><input id="p_nik"></div>
+      <div><label>TTL</label><input id="p_ttl"></div>
+      <div><label>Agama</label><input id="p_agama"></div>
+      <div><label>Jenis Kelamin</label><input id="p_jk"></div>
+      <div><label>Status Perkawinan</label><input id="p_status"></div>
+      <div><label>Pekerjaan</label><input id="p_pekerjaan"></div>
+      <div><label>Alamat</label><input id="p_alamat"></div>
+      <div><label>Kelurahan</label><input id="p_kelurahan"></div>
+      <div><label>Kecamatan</label><input id="p_kecamatan"></div>
+      <div><label>Kota/Kab</label><input id="p_kota"></div>
+      <div><label>Provinsi</label><input id="p_prov"></div>
+      <div style="grid-column:1/-1"><label>Domisili</label><input id="p_domisili"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 8px">File Ter-upload</h3>
+    <div class="status">Setiap baris memiliki: Nama dokumen • Lihat • Unduh • Hapus</div>
+    <div id="uploadedFilesBox" style="overflow:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Nama Dokumen</th>
+            <th class="nowrap">Aksi</th>
+            <th class="nowrap">file_id</th>
+            <th class="nowrap">Tipe</th>
+            <th class="nowrap">Ukuran</th>
+          </tr>
+        </thead>
+        <tbody id="uploadedFilesTbody"></tbody>
+      </table>
+    </div>
+    <span class="status" id="delDocStatus">—</span>
+  </div>
+
+  <div class="status" id="status">Menunggu data…</div>
+
+  <div class="card">
+    <label>Payload sumber (read-only)</label>
+    <pre id="output">{}</pre>
+  </div>
+
+<script>
+/* ================== KONFIG (fallback ID_USER) ================== */
+const ID_USER_RAW = "{{ $json.id }}"; // literal jika tidak dirender n8n
+function resolveIdUser(){
+  if (/\{\{\s*\$json\.id\s*\}\}/.test(ID_USER_RAW)){
+    const u = new URL(location.href);
+    const q = u.searchParams.get('id');
+    if (q) return q.trim();
+    const segs = u.pathname.split('/').filter(Boolean);
+    if (segs.length) return segs[segs.length-1];
+    return "";
+  }
+  return ID_USER_RAW.trim();
+}
+let ID_USER = resolveIdUser();
+let JSON_URL = ID_USER ? ("https://distrikwania.com/data/"+encodeURIComponent(ID_USER)) : "";
+document.getElementById('src').textContent = JSON_URL || "(ID_USER belum di-set)";
+
+/* ====== STRATEGI UPDATE ====== */
+// OVERWRITE_BIN: n8n menimpa file JSON utuh ➜ WAJIB kirim dokumen yang ada
+// MERGE       : n8n menggabungkan (boleh tanpa dokumen)
+const UPDATE_STRATEGY = 'OVERWRITE_BIN';
+
+/* ================== Elemen ================== */
+const E=(id)=>document.getElementById(id);
+const out=E('output'), stat=E('status'), sstat=E('sendStatus'), ustat2=E('updateStatus'), ust=E('uploadStatus');
+const btn=E('sendBtn'), updateBtn=E('updateBtn'), upBtn=E('uploadBtn'), fileInput=E('fileInput'), pause=E('pauseEdit');
+const uploadedFilesTbody=E('uploadedFilesTbody'), delDocStatus=E('delDocStatus');
+
+const F = { jenis_surat:E('jenis_surat'), nomor_surat:E('nomor_surat'), tanggal_surat:E('tanggal_surat'), operator:E('operator'),
+  p:{ nama:E('p_nama'), nik:E('p_nik'), ttl:E('p_ttl'), agama:E('p_agama'), jk:E('p_jk'), status:E('p_status'), pekerjaan:E('p_pekerjaan'), alamat:E('p_alamat'), kelurahan:E('p_kelurahan'), kecamatan:E('p_kecamatan'), kota:E('p_kota'), prov:E('p_prov'), domisili:E('p_domisili') } };
+
+let lastJSON=null, lastObj=null, lastHash=null;
+
+/* ================== Utils ================== */
+async function hashText(txt){ const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt)); return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
+function val(x,fb=''){return x??fb;}
+function stripTransient(obj){ if(!obj||typeof obj!=='object') return obj; const copy=JSON.parse(JSON.stringify(obj)); const keys=['files','files_info','last_upload_info','temp_files','pending_docs','upload_session_id']; for(const k of keys){ if(k in copy) delete copy[k]; } if(Array.isArray(copy)&&copy[0]&&typeof copy[0]==='object'){ for(const k of keys){ if(k in copy[0]) delete copy[0][k]; } } return copy; }
+function normalizeDokumen(docs){ const arr=Array.isArray(docs)?docs.filter(Boolean):[]; const seen=new Set(); const out=[]; for(const d of arr){ const fid=d?.file_id||d?.id||d?.fileId||null; const hasUrl=!!(d?.view_url||d?.download_url); if(!fid && !hasUrl) continue; const key=fid?`fid:${fid}`:`name:${(d?.name||'').toLowerCase()}|size:${d?.size||0}`; if(seen.has(key)) continue; seen.add(key); out.push({ label:d?.label??d?.name??'-', name:d?.name??d?.label??'-', mimeType:d?.mimeType??null, size:typeof d?.size==='number'?d.size:(Number.isFinite(+d?.size)?+d.size:null), file_id:fid, view_url:d?.view_url??null, download_url:d?.download_url??null }); } return out; }
+
+/* ================== Form Builders ================== */
+function fillForm(obj){ F.jenis_surat.value=val(obj.jenis_surat); F.nomor_surat.value=val(obj.nomor_surat); F.tanggal_surat.value=val(obj.tanggal_surat); F.operator.value=val(obj.operator); const p=obj.pemohon||{}; F.p.nama.value=val(p.nama); F.p.nik.value=val(p.nik); F.p.ttl.value=val(p.ttl); F.p.agama.value=val(p.agama); F.p.jk.value=val(p.jenis_kelamin); F.p.status.value=val(p.status_perkawinan); F.p.pekerjaan.value=val(p.pekerjaan); F.p.alamat.value=val(p.alamat); F.p.kelurahan.value=val(p.kelurahan); F.p.kecamatan.value=val(p.kecamatan); F.p.kota.value=val(p.kota_kab); F.p.prov.value=val(p.provinsi); F.p.domisili.value=val(p.domisili); }
+function buildPayload(base){ const obj=JSON.parse(JSON.stringify(base||{})); obj.jenis_surat=F.jenis_surat.value.trim(); obj.nomor_surat=F.nomor_surat.value.trim(); obj.tanggal_surat=F.tanggal_surat.value.trim(); obj.operator=F.operator.value.trim(); obj.pemohon=obj.pemohon||{}; obj.pemohon.nama=F.p.nama.value.trim(); obj.pemohon.nik=F.p.nik.value.trim(); obj.pemohon.ttl=F.p.ttl.value.trim(); obj.pemohon.agama=F.p.agama.value.trim(); obj.pemohon.jenis_kelamin=F.p.jk.value.trim(); obj.pemohon.status_perkawinan=F.p.status.value.trim(); obj.pemohon.pekerjaan=F.p.pekerjaan.value.trim(); obj.pemohon.alamat=F.p.alamat.value.trim(); obj.pemohon.kelurahan=F.p.kelurahan.value.trim(); obj.pemohon.kecamatan=F.p.kecamatan.value.trim(); obj.pemohon.kota_kab=F.p.kota.value.trim(); obj.pemohon.provinsi=F.p.prov.value.trim(); obj.pemohon.domisili=F.p.domisili.value.trim(); if(Array.isArray(obj.dokumen)) obj.dokumen = normalizeDokumen(obj.dokumen); return stripTransient(obj); }
+
+/* ================== Render Daftar Dokumen ================== */
+function renderUploadedFiles(obj){ const docs=normalizeDokumen(Array.isArray(obj?.dokumen)?obj.dokumen:[]); uploadedFilesTbody.innerHTML=''; for(const d of docs){ const tr=document.createElement('tr'); const name=d?.name||d?.label||'-'; const view=d?.view_url||null; const down=d?.download_url||null; const fid=d?.file_id||null; tr.innerHTML='<td>'+name+'</td>'+
+      '<td class="nowrap"><div class="actions">'+
+      (view?('<a class="linklike" href="'+view+'" target="_blank" rel="noopener">Lihat</a>'):'<span class="status">—</span>')+
+      (down?('<a class="linklike" href="'+down+'" target="_blank" rel="noopener">Unduh</a>'):'<span class="status">—</span>')+
+      '<button class="btn btn-danger tight-del" '+(fid?'':'disabled')+' data-fileid="'+(fid||'')+'">Hapus</button></div></td>'+
+      '<td class="nowrap"><code class="mono">'+(fid||'-')+'</code></td>'+
+      '<td class="nowrap">'+(d?.mimeType||'-')+'</td>'+
+      '<td class="nowrap">'+(typeof d?.size==='number'?d.size.toLocaleString('id-ID'):(d?.size||'-'))+'</td>';
+    uploadedFilesTbody.appendChild(tr); }
+  uploadedFilesTbody.querySelectorAll('.tight-del').forEach(btn=>{ btn.addEventListener('click', ()=>{ const fid=btn.getAttribute('data-fileid'); if(fid) deleteDocumentsByFileIds([fid]); }); }); }
+
+/* ================== Loader JSON sumber (robust) ================== */
+async function load(){
+  try{
+    if(!JSON_URL){ stat.textContent='ID_USER kosong. Buka halaman dengan ?id=<ID> atau render via n8n.'; out.textContent='{}'; uploadedFilesTbody.innerHTML=''; return; }
+    const res=await fetch(JSON_URL+'?t='+Date.now(),{cache:'no-store'});
+    if(!res.ok){ const text=await res.text(); stat.textContent='Gagal ('+res.status+'). Periksa ID/URL/CORS.'; out.textContent=text.slice(0,500); uploadedFilesTbody.innerHTML=''; return; }
+    const ctype=res.headers.get('content-type')||''; const txt=await res.text();
+    try{ lastJSON=JSON.parse(txt); }catch(err){ if(!ctype.includes('application/json')){ stat.textContent='Respon bukan JSON. Cek server/CORS.'; out.textContent=txt.slice(0,500); uploadedFilesTbody.innerHTML=''; return; } else { throw err; } }
+    const h=await hashText(JSON.stringify(lastJSON)); if(h!==lastHash){ lastHash=h; lastObj=Array.isArray(lastJSON)?lastJSON[0]:lastJSON; out.textContent=JSON.stringify(lastJSON,null,2); renderUploadedFiles(lastObj||{}); if(!pause.checked) fillForm(lastObj||{}); }
+    stat.textContent='Tersambung • '+new Date().toLocaleTimeString();
+  }catch(e){ stat.textContent='Error: '+e.message; }
+}
+load(); setInterval(load,1200);
+
+/* ================== Kirim / Update / Upload ================== */
+btn.addEventListener('click', async()=>{
+  if(!lastObj && !lastJSON){ sstat.textContent='Belum ada data'; return; }
+  btn.disabled=true; sstat.textContent='Mengirim…';
+  try{
+    const base=lastObj||(Array.isArray(lastJSON)?lastJSON[0]:lastJSON)||{};
+    const editedClean=buildPayload(base);
+    let dataPayload;
+    if(Array.isArray(lastJSON)){ const arr=[...lastJSON]; arr[0]={...editedClean,id_user:ID_USER}; dataPayload=arr; } else { dataPayload={...editedClean,id_user:ID_USER}; }
+    const resp=await fetch('https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/57feb799-ddb2-4b0c-bfc0-b4e077558c79',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(dataPayload)});
+    sstat.textContent=resp.ok?'Terkirim ✓':('Gagal ('+resp.status+')');
+  }catch(e){ sstat.textContent='Error: '+e.message; }
+  finally{ btn.disabled=false; }
+});
+
+updateBtn.addEventListener('click', async()=>{
+  if(!lastObj && !lastJSON){ ustat2.textContent='Belum ada data'; return; }
+  updateBtn.disabled=true; ustat2.textContent='Mengirim update…';
+  try{
+    const base=lastObj||(Array.isArray(lastJSON)?lastJSON[0]:lastJSON)||{};
+    const edited=buildPayload(base);
+
+    if(UPDATE_STRATEGY==='OVERWRITE_BIN'){
+      // bawa dokumen yang valid agar tidak hilang saat overwrite
+      const oldDocs=normalizeDokumen(base?.dokumen);
+      edited.dokumen = normalizeDokumen(Array.isArray(edited.dokumen)&&edited.dokumen.length?edited.dokumen:oldDocs);
+    } else {
+      if('dokumen' in edited) delete edited.dokumen; // mode MERGE aman tanpa dokumen
+    }
+
+    let dataPayload;
+    if(Array.isArray(lastJSON)){ const arr=[...lastJSON]; arr[0]={...edited,id_user:ID_USER}; dataPayload=arr; } else { dataPayload={...edited,id_user:ID_USER}; }
+
+    const resp=await fetch('https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/e1863045-3bfd-497d-b8a3-fc2c7c23eaa7',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ action:'UPDATE_ONLY', strategy:UPDATE_STRATEGY, id_user:ID_USER, data:dataPayload })
+    });
+    if(!resp.ok) throw new Error('HTTP '+resp.status+' — '+(await resp.text()).slice(0,200));
+    ustat2.textContent='Update sukses ✓';
+    await load();
+  }catch(e){ ustat2.textContent='Error: '+e.message; }
+  finally{ updateBtn.disabled=false; }
+});
+
+upBtn.addEventListener('click', async()=>{
+  try{
+    if(!lastObj && !lastJSON){ ust.textContent='Belum ada data'; return; }
+    const files=Array.from(fileInput.files||[]);
+    if(files.length===0){ ust.textContent='Pilih minimal satu file.'; return; }
+
+    upBtn.disabled=true; ust.textContent='Mengupload…';
+
+    const baseObj=lastObj||(Array.isArray(lastJSON)?lastJSON[0]:lastJSON)||{};
+    const edited=buildPayload(baseObj); // tanpa files_info
+
+    let dataPayload;
+    if(Array.isArray(lastJSON)){ const arr=[...lastJSON]; arr[0]={...edited,id_user:ID_USER}; dataPayload=arr; } else { dataPayload={...edited,id_user:ID_USER}; }
+
+    const files_info=files.map(f=>({name:f.name,size:f.size,type:f.type||null}));
+    const form=new FormData();
+    form.append('data', JSON.stringify(dataPayload));
+    form.append('id_user', ID_USER);
+    form.append('files_info', JSON.stringify(files_info));
+    for(const f of files) form.append('files[]', f, f.name);
+
+    const resp=await fetch('https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/1ae8a1a1-9f9d-4792-8505-9c84e1d3654b',{ method:'POST', body:form });
+    const text=await resp.text();
+    if(!resp.ok) throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));
+
+    ust.textContent='Upload sukses ✓';
+    fileInput.value=''; // reset input file
+    await load();
+  }catch(e){ ust.textContent='Upload gagal: '+e.message; }
+  finally{ upBtn.disabled=false; }
+});
+
+/* ================== Hapus Dokumen ================== */
+async function deleteDocumentsByFileIds(fileIds=[]){
+  if(!fileIds.length) return;
+  if(!confirm('Hapus '+fileIds.length+' dokumen?\n'+fileIds.join('\n'))) return;
+  try{
+    delDocStatus.textContent='Memproses…';
+    const base=lastObj||(Array.isArray(lastJSON)?lastJSON[0]:lastJSON)||{};
+    const filtered=JSON.parse(JSON.stringify(base));
+    const docs=Array.isArray(filtered.dokumen)?filtered.dokumen:[];
+    filtered.dokumen = normalizeDokumen(docs).filter(d=>!fileIds.includes(d?.file_id));
+
+    let overwritePayload;
+    if(Array.isArray(lastJSON)){ const arr=[...lastJSON]; arr[0]={...filtered,id_user:ID_USER}; overwritePayload=arr; } else { overwritePayload={...filtered,id_user:ID_USER}; }
+
+    const resp=await fetch('https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/e1863045-3bfd-497d-b8a3-fc2c7c23eaa7',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ action:'DELETE_DOCS', id_user:ID_USER, delete_file_ids:fileIds, data:overwritePayload })
+    });
+
+    if(!resp.ok){ const t=await resp.text(); throw new Error('HTTP '+resp.status+' — '+t.slice(0,200)); }
+    delDocStatus.textContent='Dokumen dihapus & data ditimpa ✓';
+    await load();
+  }catch(e){ delDocStatus.textContent='Gagal: '+e.message; }
+}
+
+uploadedFilesTbody.addEventListener('click',(ev)=>{
+  const btn=ev.target.closest('.tight-del');
+  if(!btn) return;
+  const fid=btn.getAttribute('data-fileid');
+  if(fid) deleteDocumentsByFileIds([fid]);
+});
+</script>
+</body>
+</html>
