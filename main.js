@@ -62,17 +62,53 @@ function normalizeDokumen(docs){
 
 // ================== Form Builders ==================
 function fillForm(obj){
-  F.jenis_surat.value=val(obj.jenis_surat);
-  F.nomor_surat.value=val(obj.nomor_surat);
-  F.tanggal_surat.value=val(obj.tanggal_surat);
-  F.operator.value=val(obj.operator);
+  // Isi input form
+  if(F.jenis_surat) F.jenis_surat.value=val(obj.jenis_surat);
+  if(F.nomor_surat) F.nomor_surat.value=val(obj.nomor_surat);
+  if(F.tanggal_surat) F.tanggal_surat.value=val(obj.tanggal_surat);
+  if(F.operator) F.operator.value=val(obj.operator);
   const p=obj.pemohon||{};
-  F.p.nama.value=val(p.nama); F.p.nik.value=val(p.nik); F.p.ttl.value=val(p.ttl);
-  F.p.agama.value=val(p.agama); F.p.jk.value=val(p.jenis_kelamin);
-  F.p.status.value=val(p.status_perkawinan); F.p.pekerjaan.value=val(p.pekerjaan);
-  F.p.alamat.value=val(p.alamat); F.p.kelurahan.value=val(p.kelurahan);
-  F.p.kecamatan.value=val(p.kecamatan); F.p.kota.value=val(p.kota_kab);
-  F.p.prov.value=val(p.provinsi); F.p.domisili.value=val(p.domisili);
+  if(F.p.nama) F.p.nama.value=val(p.nama);
+  if(F.p.nik) F.p.nik.value=val(p.nik);
+  if(F.p.ttl) F.p.ttl.value=val(p.ttl);
+  if(F.p.agama) F.p.agama.value=val(p.agama);
+  if(F.p.jk) F.p.jk.value=val(p.jenis_kelamin);
+  if(F.p.status) F.p.status.value=val(p.status_perkawinan);
+  if(F.p.pekerjaan) F.p.pekerjaan.value=val(p.pekerjaan);
+  if(F.p.alamat) F.p.alamat.value=val(p.alamat);
+  if(F.p.kelurahan) F.p.kelurahan.value=val(p.kelurahan);
+  if(F.p.kecamatan) F.p.kecamatan.value=val(p.kecamatan);
+  if(F.p.kota) F.p.kota.value=val(p.kota_kab);
+  if(F.p.prov) F.p.prov.value=val(p.provinsi);
+  if(F.p.domisili) F.p.domisili.value=val(p.domisili);
+
+  // Isi elemen non-input
+  const setText = (id, value) => { const el = document.getElementById(id); if(el) el.textContent = value || ""; };
+  setText('LogoURL', obj.LogoURL);
+  setText('jenis_surat', obj.jenis_surat);
+  setText('nomor_surat', obj.nomor_surat);
+  setText('operator', obj.operator);
+  setText('tanggal_surat', obj.tanggal_surat);
+  setText('ref', obj.ref);
+  setText('WAHA_Trigger_payload_from', obj.WAHA_Trigger_payload_from);
+  setText('nama', p.nama);
+  setText('nik', p.nik);
+  setText('ttl', p.ttl);
+  setText('agama', p.agama);
+  setText('jenis_kelamin', p.jenis_kelamin);
+  setText('status_perkawinan', p.status_perkawinan);
+  setText('pekerjaan', p.pekerjaan);
+  setText('alamat', p.alamat);
+  setText('kelurahan', p.kelurahan);
+  setText('kecamatan', p.kecamatan);
+  setText('kota_kab', p.kota_kab);
+  setText('provinsi', p.provinsi);
+  setText('keterangan_kelurahan', p.kelurahan);
+  // Tahun copyright
+  setText('tahun', new Date().getFullYear());
+  // Jika ada logo, update src
+  const logoEl = document.getElementById('LogoURL');
+  if(logoEl && obj.LogoURL) logoEl.src = obj.LogoURL;
 }
 function buildPayload(base){
   const obj=JSON.parse(JSON.stringify(base||{}));
