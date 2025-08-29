@@ -4,14 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kawe Nia • Layanan SKTM</title>
-  <script></script>
+  <style></style>
 </head>
 <body>
   <div class="wrap">
     <!-- Top Bar -->
     <div class="topbar">
       <div class="brand">
-  <img class="logo" id="logoImg" src="" alt="Lambang Kabupaten">
+        <!-- Updated LogoURL reference from $json.data[0] to $json[0] -->
+  <img class="logo" id="LogoURL" src="" alt="Lambang Kabupaten">
         <div>
           <div class="title">Kawe Nia • Pelayanan Masyarakat</div>
           <div class="sub">Distrik Wania, Kabupaten Mimika</div>
@@ -24,13 +25,14 @@
     <section class="card" role="region" aria-label="Layanan SKTM">
       <header class="card-header">
         <div class="hgroup">
-          <div class="h1">Surat Keterangan Tidak Mampu (SKTM)</div>
+          <!-- Updated JSON structure from $json[0] to $json.data[0] -->
+          <div class="h1" id="jenis_surat"></div>
           <div class="h2">Nomor:
-            <span class="mono" id="nomorSurat"></span>
+            <span class="mono" id="nomor_surat"></span>
           </div>
         </div>
         <div class="badges">
-          <span class="badge info">Kepala Distrik: Belum Ditandatangani</span>
+          <span class="badge info">Status: Menunggu Tanda Tangan</span>
         </div>
       </header>
 
@@ -40,73 +42,124 @@
           <div class="stitle">Data Pemohon</div> 
           <button class="btn ghost" onclick="toggleEditMode()" id="editBtn" style="margin-bottom: 12px;">✏️ Edit Data</button>
           <div class="ident" aria-label="Identitas Pemohon">
+            <!-- Updated all pemohon data references to use $json.data[0] structure -->
             <div class="lab">Nama</div><div class="sep">:</div>
             <div class="val" id="nama"></div>
-            <input type="text" class="edit-field" id="editNama" value="" placeholder="Masukkan nama lengkap">
+            <input type="text" class="edit-field" id="editNama" value="{{ $json.data[0].pemohon.nama }}" placeholder="Masukkan nama lengkap">
             
             <div class="lab">NIK</div><div class="sep">:</div>
             <div class="val mono" id="nik"></div>
-            <input type="text" class="edit-field" id="editNIK" value="" placeholder="Masukkan NIK">
+            <input type="text" class="edit-field" id="editNIK" value="{{ $json.data[0].pemohon.nik }}" placeholder="Masukkan NIK">
             
             <div class="lab">Tempat/Tgl Lahir</div><div class="sep">:</div>
             <div class="val" id="ttl"></div>
-            <input type="text" class="edit-field" id="editTTL" value="" placeholder="Contoh: Jakarta, 15 Januari 1990">
+            <input type="text" class="edit-field" id="editTTL" value="{{ $json.data[0].pemohon.ttl }}" placeholder="Contoh: Jakarta, 15 Januari 1990">
             
             <div class="lab">Agama</div><div class="sep">:</div>
             <div class="val" id="agama"></div>
-            <input type="text" class="edit-field" id="editAgama" value="" placeholder="Masukkan agama">
+            <input type="text" class="edit-field" id="editAgama" value="{{ $json.data[0].pemohon.agama }}" placeholder="Masukkan agama">
             
             <div class="lab">Jenis Kelamin</div><div class="sep">:</div>
-            <div class="val" id="jenisKelamin"></div>
+            <div class="val" id="jenis_kelamin"></div>
             <select class="edit-field" id="editJenisKelamin">
-              <option value="LAKI-LAKI">Laki-laki</option>
-              <option value="PEREMPUAN">Perempuan</option>
+              <option value="LAKI-LAKI" {{ $json.data[0].pemohon.jenis_kelamin == 'LAKI-LAKI' ? 'selected' : '' }}>Laki-laki</option>
+              <option value="PEREMPUAN" {{ $json.data[0].pemohon.jenis_kelamin == 'PEREMPUAN' ? 'selected' : '' }}>Perempuan</option>
             </select>
             
             <div class="lab">Status Perkawinan</div><div class="sep">:</div>
-            <div class="val" id="statusPerkawinan"></div>
+            <div class="val" id="status_perkawinan"></div>
             <select class="edit-field" id="editStatusPerkawinan">
-              <option value="BELUM KAWIN">Belum Kawin</option>
-              <option value="KAWIN">Kawin</option>
-              <option value="CERAI HIDUP">Cerai Hidup</option>
-              <option value="CERAI MATI">Cerai Mati</option>
+              <option value="BELUM KAWIN" {{ $json.data[0].pemohon.status_perkawinan == 'BELUM KAWIN' ? 'selected' : '' }}>Belum Kawin</option>
+              <option value="KAWIN" {{ $json.data[0].pemohon.status_perkawinan == 'KAWIN' ? 'selected' : '' }}>Kawin</option>
+              <option value="CERAI HIDUP" {{ $json.data[0].pemohon.status_perkawinan == 'CERAI HIDUP' ? 'selected' : '' }}>Cerai Hidup</option>
+              <option value="CERAI MATI" {{ $json.data[0].pemohon.status_perkawinan == 'CERAI MATI' ? 'selected' : '' }}>Cerai Mati</option>
             </select>
             
             <div class="lab">Pekerjaan</div><div class="sep">:</div>
             <div class="val" id="pekerjaan"></div>
-            <input type="text" class="edit-field" id="editPekerjaan" value="" placeholder="Masukkan pekerjaan">
+            <input type="text" class="edit-field" id="editPekerjaan" value="{{ $json.data[0].pemohon.pekerjaan }}" placeholder="Masukkan pekerjaan">
             
             <div class="lab">Alamat</div><div class="sep">:</div>
             <div class="val" id="alamat"></div>
-            <textarea class="edit-field" id="editAlamat" placeholder="Masukkan alamat lengkap" rows="2"></textarea>
+            <textarea class="edit-field" id="editAlamat" placeholder="Masukkan alamat lengkap" rows="2">{{ $json.data[0].pemohon.alamat }}</textarea>
+
+            <div class="lab">Kelurahan</div><div class="sep">:</div>
+            <div class="val" id="kelurahan"></div>
+            <input type="text" class="edit-field" id="editKelurahan" value="{{ $json.data[0].pemohon.kelurahan }}" placeholder="Masukkan kelurahan">
+            
+            <div class="lab">Kecamatan</div><div class="sep">:</div>
+            <div class="val" id="kecamatan"></div>
+            <input type="text" class="edit-field" id="editKecamatan" value="{{ $json.data[0].pemohon.kecamatan }}" placeholder="Masukkan kecamatan">
+            
+            <div class="lab">Kota/Kabupaten</div><div class="sep">:</div>
+            <div class="val" id="kota_kab"></div>
+            <input type="text" class="edit-field" id="editKotaKab" value="{{ $json.data[0].pemohon.kota_kab }}" placeholder="Masukkan kota/kabupaten">
+            
+            <div class="lab">Provinsi</div><div class="sep">:</div>
+            <div class="val" id="provinsi"></div>
+            <input type="text" class="edit-field" id="editProvinsi" value="{{ $json.data[0].pemohon.provinsi }}" placeholder="Masukkan provinsi">
           </div>
-          
-          <!-- Uploaded Files Section -->
-          <div class="stitle" style="margin-top:16px">File yang Diupload</div>
-          <div id="uploadedFilesList" class="uploaded-files-container">
-            <div class="no-files-message">Belum ada file yang diupload</div>
-          </div>
-          
           <div class="edit-actions">
             <button class="btn success" onclick="saveChanges()">💾 Simpan Perubahan</button>
             <button class="btn danger" onclick="cancelEdit()">❌ Batal</button>
           </div>
+          
+          <!-- Improved file upload section with better multiple file handling -->
+          <div class="stitle" style="margin-top:10px">Lampiran </div>
+          <div class="callout" style="border-color:rgba(239,68,68,.45); background:rgba(239,68,68,.08); color:#fee2e2">
+            <div>Foto rumah, surat keterangan RT/RW, atau kartu BPJS dapat dilampirkan di sini.</div>
+          </div>
+          <div class="stitle" style="margin-top:10px">Upload File</div>
+          <div class="file-upload-container" 
+               ondragover="handleDragOver(event)" 
+               ondragleave="handleDragLeave(event)" 
+               ondrop="handleDrop(event)">
+            <input type="file" id="fileInput" accept="*" multiple style="display: none;" onchange="handleFileSelect(event)">
+            <button class="btn ghost" onclick="document.getElementById('fileInput').click()" style="width: 100%; margin-bottom: 8px;">
+              📁 Pilih File
+            </button>
+            <div style="font-size: 11px; color: #9ca3af; text-align: center; margin-bottom: 8px;">
+              (PDF, DOC, XLS, PPT, ZIP, RAR, dll)
+            </div>
+            <div id="fileInfo" style="display: none;"></div>
+            <div id="uploadProgress" class="upload-progress" style="display: none;">
+              <div id="uploadProgressBar" class="upload-progress-bar"></div>
+            </div>
+            <button class="btn primary" id="uploadBtn" onclick="uploadFiles()" style="width: 100%; display: none;">
+              📤 Kirim File
+            </button>
+          </div>
 
-          <div class="stitle" style="margin-top:16px">Keterangan</div>
-          <ol class="ket">
-            <li>
-              Pemohon tercatat sebagai penduduk <b id="kelurahan"></b>,
-              Kecamatan <span id="kecamatan"></span>, Kabupaten <span id="kabupaten"></span>.
-            </li>
-            <li>
-              Berdasarkan data kelayakan, pemohon berstatus ekonomi lemah dan memerlukan dukungan pembiayaan <b>BPJS/KIS</b>.
-            </li>
-            <li>
-              Dokumen ini disiapkan untuk keperluan administrasi terkait layanan kesehatan dan sosial.
-            </li>
-          </ol>
+          <!-- Added uploaded files display section -->
+          <div class="stitle" style="margin-top:16px">File Terupload</div>
+          <div class="uploaded-files-container">
+            <div id="uploadedFilesList">
+              <div class="no-files-message">Belum ada file yang diupload</div>
+            </div>
+          </div>
+          
+
+
+          
           <div class="note">
             Catatan: Periksa Data Sebelum Buat Surat.
+          </div>
+
+          <!-- Keterangan Section -->
+          <div class="stitle" style="margin-top:16px">Keterangan</div>
+            <div class="file-upload-container"  style="margin-bottom: 16px; line-height: 1.6; font-size: 14px;">
+            <div style="margin-bottom: 8px;">
+              1. Tersebut namanya diatas adalah benar - benar penduduk <strong id="keterangan_kelurahan"></strong>
+            </div>
+            <div style="margin-bottom: 8px;">
+              2. Tersebut namanya diatas adalah benar - berstatus ekonomi lemah yang tidak mampu menebus atau membayar biaya pengobatan <strong>BPJS / KIS</strong>
+            </div>
+            <div style="margin-bottom: 8px;">
+              3. Mohon surat keterangan ini digunakan sebagaimana mestinya.
+            </div>
+            <div style="margin-top: 12px; font-style: italic;">
+              Demikian surat keterangan tidak mampu ini, kami buat untuk dapat digunakan sebagaimana mestinya.
+            </div>
           </div>
         </div>
 
@@ -121,36 +174,17 @@
           <div class="stitle" style="margin-top:10px">Ringkasan</div>
           <div class="callout">
             <div><b>Operator:</b> <span id="operator"></span></div>
-            <div><b>Tanggal:</b> <span id="tanggal"></span></div>
-            <div><b>Referensi:</b> <span id="sessionId"></span></div>
+            <div><b>Tanggal:</b> <span id="tanggal_surat"></span></div>
+            <div><b>Referensi:</b> <span id="ref"></span></div>
+            <div><b>From:</b> <span id="WAHA_Trigger_payload_from"></span></div>
           </div>
 
-          <div class="stitle" style="margin-top:10px">Lampiran Opsional</div>
-          <div class="callout" style="border-color:rgba(239,68,68,.45); background:rgba(239,68,68,.08); color:#fee2e2">
-            <div>Foto rumah, surat keterangan RT/RW, atau kartu BPJS dapat dilampirkan di sini.</div>
-          </div>
           
-          <div class="stitle" style="margin-top:10px">Upload File</div>
-          <div class="file-upload-container">
-            <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display: none;">
-            <button class="btn ghost" onclick="document.getElementById('fileInput').click()" style="width: 100%; margin-bottom: 8px;">
-              📁 Pilih File
-            </button>
-            <div style="font-size: 11px; color: #9ca3af; text-align: center; margin-bottom: 8px;">
-              Atau drag & drop file ke sini
-            </div>
-            <div id="fileInfo" style="font-size: 12px; color: #cbd5e1; margin-bottom: 8px; display: none;"></div>
-            <button class="btn primary" id="uploadBtn" onclick="uploadFile()" style="width: 100%; display: none;">
-              📤 Kirim File
-            </button>
-          </div>
-          
-
         </aside>
       </div>
 
       <footer class="card-footer">
-  <div>© <span id="tahunFooter"></span> Pemerintah Distrik Wania • Kawe Nia</div>
+  <div>© <span id="tahun"></span> Pemerintah Distrik Wania • Kawe Nia</div>
       </footer>
     </section>
   </div>
@@ -167,7 +201,6 @@
     </div>
   </div>
 
-<script src="main.js"></script>
-<script></script>
+  <script></script>
 </body>
 </html>
