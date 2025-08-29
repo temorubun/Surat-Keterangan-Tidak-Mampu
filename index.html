@@ -3,16 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Surat Keterangan Tidak Mampu (SKTM)</title>
-  <link rel="stylesheet" href="style.css">
-  <style></style>
+  <title>Kawe Nia • Layanan SKTM</title>
+  <script></script>
 </head>
 <body>
   <div class="wrap">
     <!-- Top Bar -->
     <div class="topbar">
       <div class="brand">
-        <img class="logo" src="logo.png" alt="Lambang Kabupaten">
+  <img class="logo" id="logoImg" src="" alt="Lambang Kabupaten">
         <div>
           <div class="title">Kawe Nia • Pelayanan Masyarakat</div>
           <div class="sub">Distrik Wania, Kabupaten Mimika</div>
@@ -26,83 +25,78 @@
       <header class="card-header">
         <div class="hgroup">
           <div class="h1">Surat Keterangan Tidak Mampu (SKTM)</div>
-          <div class="h2">Nomor: <span class="mono">400.2.1 / — / 2025</span></div>
+          <div class="h2">Nomor:
+            <span class="mono" id="nomorSurat"></span>
+          </div>
         </div>
         <div class="badges">
           <span class="badge info">Kepala Distrik: Belum Ditandatangani</span>
         </div>
       </header>
 
-
       <div class="grid">
         <!-- Left: Data & Keterangan -->
         <div class="panel">
-          <div class="stitle">Data Pemohon</div>
-          <button class="btn ghost" style="margin-bottom: 12px;">✏️ Edit Data</button>
-          <form id="pemohonForm">
-            <div class="ident" aria-label="Identitas Pemohon">
-              <div class="lab">Nama</div><div class="sep">:</div>
-              <input type="text" id="p_nama" placeholder="Nama" class="val" />
-              <div class="lab">NIK</div><div class="sep">:</div>
-              <input type="text" id="p_nik" placeholder="NIK" class="val mono" />
-              <div class="lab">Tempat/Tgl Lahir</div><div class="sep">:</div>
-              <input type="text" id="p_ttl" placeholder="Tempat/Tgl Lahir" class="val" />
-              <div class="lab">Agama</div><div class="sep">:</div>
-              <input type="text" id="p_agama" placeholder="Agama" class="val" />
-              <div class="lab">Jenis Kelamin</div><div class="sep">:</div>
-              <select id="p_jk" class="val">
-                <option value="LAKI-LAKI">Laki-laki</option>
-                <option value="PEREMPUAN">Perempuan</option>
-              </select>
-              <div class="lab">Status Perkawinan</div><div class="sep">:</div>
-              <select id="p_status" class="val">
-                <option value="BELUM KAWIN">Belum Kawin</option>
-                <option value="KAWIN">Kawin</option>
-                <option value="CERAI HIDUP">Cerai Hidup</option>
-                <option value="CERAI MATI">Cerai Mati</option>
-              </select>
-              <div class="lab">Pekerjaan</div><div class="sep">:</div>
-              <input type="text" id="p_pekerjaan" placeholder="Pekerjaan" class="val" />
-              <div class="lab">Alamat</div><div class="sep">:</div>
-              <input type="text" id="p_alamat" placeholder="Alamat" class="val" />
-              <div class="lab">Kelurahan</div><div class="sep">:</div>
-              <input type="text" id="p_kelurahan" placeholder="Kelurahan" class="val" />
-              <div class="lab">Kecamatan</div><div class="sep">:</div>
-              <input type="text" id="p_kecamatan" placeholder="Kecamatan" class="val" />
-              <div class="lab">Kota/Kabupaten</div><div class="sep">:</div>
-              <input type="text" id="p_kota" placeholder="Kota/Kabupaten" class="val" />
-              <div class="lab">Provinsi</div><div class="sep">:</div>
-              <input type="text" id="p_prov" placeholder="Provinsi" class="val" />
-              <div class="lab">Domisili</div><div class="sep">:</div>
-              <input type="text" id="p_domisili" placeholder="Domisili" class="val" />
-            </div>
-            <div class="row">
-              <label for="jenis_surat">Jenis Surat:</label>
-              <input type="text" id="jenis_surat" placeholder="Jenis Surat" />
-              <label for="nomor_surat">Nomor Surat:</label>
-              <input type="text" id="nomor_surat" placeholder="Nomor Surat" />
-              <label for="tanggal_surat">Tanggal Surat:</label>
-              <input type="text" id="tanggal_surat" placeholder="Tanggal Surat" />
-              <label for="operator">Operator:</label>
-              <input type="text" id="operator" placeholder="Operator" />
-            </div>
-          </form>
-          <div id="status" class="note"></div>
-          <div id="output" style="display:none"></div>
-
+          <div class="stitle">Data Pemohon</div> 
+          <button class="btn ghost" onclick="toggleEditMode()" id="editBtn" style="margin-bottom: 12px;">✏️ Edit Data</button>
+          <div class="ident" aria-label="Identitas Pemohon">
+            <div class="lab">Nama</div><div class="sep">:</div>
+            <div class="val" id="nama"></div>
+            <input type="text" class="edit-field" id="editNama" value="" placeholder="Masukkan nama lengkap">
+            
+            <div class="lab">NIK</div><div class="sep">:</div>
+            <div class="val mono" id="nik"></div>
+            <input type="text" class="edit-field" id="editNIK" value="" placeholder="Masukkan NIK">
+            
+            <div class="lab">Tempat/Tgl Lahir</div><div class="sep">:</div>
+            <div class="val" id="ttl"></div>
+            <input type="text" class="edit-field" id="editTTL" value="" placeholder="Contoh: Jakarta, 15 Januari 1990">
+            
+            <div class="lab">Agama</div><div class="sep">:</div>
+            <div class="val" id="agama"></div>
+            <input type="text" class="edit-field" id="editAgama" value="" placeholder="Masukkan agama">
+            
+            <div class="lab">Jenis Kelamin</div><div class="sep">:</div>
+            <div class="val" id="jenisKelamin"></div>
+            <select class="edit-field" id="editJenisKelamin">
+              <option value="LAKI-LAKI">Laki-laki</option>
+              <option value="PEREMPUAN">Perempuan</option>
+            </select>
+            
+            <div class="lab">Status Perkawinan</div><div class="sep">:</div>
+            <div class="val" id="statusPerkawinan"></div>
+            <select class="edit-field" id="editStatusPerkawinan">
+              <option value="BELUM KAWIN">Belum Kawin</option>
+              <option value="KAWIN">Kawin</option>
+              <option value="CERAI HIDUP">Cerai Hidup</option>
+              <option value="CERAI MATI">Cerai Mati</option>
+            </select>
+            
+            <div class="lab">Pekerjaan</div><div class="sep">:</div>
+            <div class="val" id="pekerjaan"></div>
+            <input type="text" class="edit-field" id="editPekerjaan" value="" placeholder="Masukkan pekerjaan">
+            
+            <div class="lab">Alamat</div><div class="sep">:</div>
+            <div class="val" id="alamat"></div>
+            <textarea class="edit-field" id="editAlamat" placeholder="Masukkan alamat lengkap" rows="2"></textarea>
+          </div>
+          
+          <!-- Uploaded Files Section -->
           <div class="stitle" style="margin-top:16px">File yang Diupload</div>
-          <table class="uploaded-files-container" style="width:100%">
-            <thead>
-              <tr><th>Nama File</th><th>Aksi</th><th>ID</th><th>Tipe</th><th>Ukuran</th></tr>
-            </thead>
-            <tbody id="uploadedFilesTbody"></tbody>
-          </table>
-          <div id="delDocStatus" class="note"></div>
+          <div id="uploadedFilesList" class="uploaded-files-container">
+            <div class="no-files-message">Belum ada file yang diupload</div>
+          </div>
+          
+          <div class="edit-actions">
+            <button class="btn success" onclick="saveChanges()">💾 Simpan Perubahan</button>
+            <button class="btn danger" onclick="cancelEdit()">❌ Batal</button>
+          </div>
 
           <div class="stitle" style="margin-top:16px">Keterangan</div>
           <ol class="ket">
             <li>
-              Pemohon tercatat sebagai penduduk <b id="p_kelurahan_view">Kelurahan Kamoro Jaya</b>, Kecamatan <span id="p_kecamatan_view">Wania</span>, Kabupaten <span id="p_kota_view">Mimika</span>.
+              Pemohon tercatat sebagai penduduk <b id="kelurahan"></b>,
+              Kecamatan <span id="kecamatan"></span>, Kabupaten <span id="kabupaten"></span>.
             </li>
             <li>
               Berdasarkan data kelayakan, pemohon berstatus ekonomi lemah dan memerlukan dukungan pembiayaan <b>BPJS/KIS</b>.
@@ -119,28 +113,23 @@
         <!-- Right: Actions & Meta -->
         <aside class="side">
           <div class="stitle">Tindakan</div>
-
           <div class="actions">
-            <button class="btn primary" id="sendBtn">Buat Surat & Kirim Data</button>
-            <button class="btn danger" id="updateBtn">Update Data</button>
-            <button class="btn" id="uploadBtn">Upload File</button>
+            <button class="btn primary" onclick="generateAndSendLetter()">Buat Surat & Kirim Data</button>
+            <button class="btn danger" onclick="deleteLetterAndData()">Hapus Surat & Hapus Data</button>
           </div>
-          <div id="sendStatus" class="note"></div>
-          <div id="updateStatus" class="note"></div>
-          <div id="uploadStatus" class="note"></div>
 
           <div class="stitle" style="margin-top:10px">Ringkasan</div>
           <div class="callout">
-            <div><b>Operator:</b> Kawe Nia</div>
-            <div><b>Tanggal:</b> 29 Agustus 2025</div>
-            <div><b>Referensi:</b> 1756042304685</div>
+            <div><b>Operator:</b> <span id="operator"></span></div>
+            <div><b>Tanggal:</b> <span id="tanggal"></span></div>
+            <div><b>Referensi:</b> <span id="sessionId"></span></div>
           </div>
 
           <div class="stitle" style="margin-top:10px">Lampiran Opsional</div>
           <div class="callout" style="border-color:rgba(239,68,68,.45); background:rgba(239,68,68,.08); color:#fee2e2">
             <div>Foto rumah, surat keterangan RT/RW, atau kartu BPJS dapat dilampirkan di sini.</div>
           </div>
-
+          
           <div class="stitle" style="margin-top:10px">Upload File</div>
           <div class="file-upload-container">
             <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display: none;">
@@ -151,15 +140,17 @@
               Atau drag & drop file ke sini
             </div>
             <div id="fileInfo" style="font-size: 12px; color: #cbd5e1; margin-bottom: 8px; display: none;"></div>
-            <button class="btn primary" id="uploadBtn" style="width: 100%; display: none;">
+            <button class="btn primary" id="uploadBtn" onclick="uploadFile()" style="width: 100%; display: none;">
               📤 Kirim File
             </button>
           </div>
+          
+
         </aside>
       </div>
 
       <footer class="card-footer">
-        <div>© 2025 Pemerintah Distrik Wania • Kawe Nia</div>
+  <div>© <span id="tahunFooter"></span> Pemerintah Distrik Wania • Kawe Nia</div>
       </footer>
     </section>
   </div>
@@ -176,6 +167,7 @@
     </div>
   </div>
 
-  <script src="main.js"></script>
+<script src="main.js"></script>
+<script></script>
 </body>
 </html>
