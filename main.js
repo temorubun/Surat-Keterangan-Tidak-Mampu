@@ -24,6 +24,191 @@ const out=E('output'), stat=E('status'), sstat=E('sendStatus'), ustat2=E('update
 const btn=E('sendBtn'), updateBtn=E('updateBtn'), upBtn=E('uploadBtn'), fileInput=E('fileInput');
 const uploadedFilesTbody=E('uploadedFilesTbody'), delDocStatus=E('delDocStatus');
 
+
+
+/* ====== Helper Query ====== */
+const F = {
+  // bidang tampilan (DIV/SPAN)
+  jenis_surat: E('jenis_surat'),
+  nomor_surat: E('nomor_surat'),
+  tanggal_surat: E('tanggal_surat'),
+  operator:     E('operator'),
+
+  // tampilan identitas (DIV/SPAN)
+  d: {
+    nama: E('nama'),
+    nik: E('nik'),
+    ttl: E('ttl'),
+    agama: E('agama'),
+    jk: E('jenis_kelamin'),
+    status: E('status_perkawinan'),
+    pekerjaan: E('pekerjaan'),
+    alamat: E('alamat'),
+    kelurahan: E('kelurahan'),
+    kecamatan: E('kecamatan'),
+    kota_kab: E('kota_kab'),
+    provinsi: E('provinsi'),
+  },
+
+  // input edit mode (sudah ada di HTML)
+  e: {
+    nama: E('editNama'),
+    nik: E('editNIK'),
+    ttl: E('editTTL'),
+    agama: E('editAgama'),
+    jk: E('editJenisKelamin'),
+    status: E('editStatusPerkawinan'),
+    pekerjaan: E('editPekerjaan'),
+    alamat: E('editAlamat'),
+    kelurahan: E('editKelurahan'),
+    kecamatan: E('editKecamatan'),
+    kota_kab: E('editKotaKab'),
+    provinsi: E('editProvinsi'),
+  },
+
+  // elemen lain yang memang ada
+  keterangan_kelurahan: E('keterangan_kelurahan'),
+  tahun: E('tahun'),
+  uploadedList: E('uploadedFilesList'),
+  logo: E('LogoURL'),
+};
+
+F.tahun.textContent = new Date().getFullYear();
+
+/* ====== Util ====== */
+function val(x, fb='-'){ return (x ?? '').toString().trim() || fb; }
+function normalizeDokumen(docs){
+  const arr = Array.isArray(docs) ? docs : [];
+  const out = [];
+  const seen = new Set();
+  for (const d of arr){
+    const fid = d?.file_id || d?.id || null;
+    const key = fid ? 'fid:'+fid : 'name:'+(d?.name||'').toLowerCase()+'|size:'+(d?.size||0);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      label: d?.label ?? d?.name ?? '-',
+      name: d?.name ?? d?.label ?? '-',
+      mimeType: d?.mimeType ?? null,
+      size: typeof d?.size==='number' ? d.size : (+d?.size || null),
+      file_id: fid,
+      view_url: d?.view_url ?? null,
+      download_url: d?.download_url ?? null,
+    });
+  }
+  return out;
+}
+
+/* ====== Renderers ====== */
+function fillView(obj){
+  // header
+  F.jenis_surat.textContent   = val(obj.jenis_surat);
+  F.nomor_surat.textContent   = val(obj.nomor_surat);
+  F.tanggal_surat.textContent = val(obj.tanggal_surat);
+  F.operator.textContent      = val(obj.operator);
+
+  // identitas (tampilan)
+  const p = obj.pemohon || {};
+  F.d.nama.textContent       = val(p.nama);
+  F.d.nik.textContent        = val(p.nik);
+  F.d.ttl.textContent        = val(p.ttl);
+  F.d.agama.textContent      = val(p.agama);
+  F.d.jk.textContent         = val(p.jenis_kelamin);
+  F.d.status.textContent     = val(p.status_perkawinan);
+  F.d.pekerjaan.textContent  = val(p.pekerjaan);
+  F.d.alamat.textContent     = val(p.alamat);
+  F.d.kelurahan.textContent  = val(p.kelurahan);
+  F.d.kecamatan.textContent  = val(p.kecamatan);
+  F.d.kota_kab.textContent   = val(p.kota_kab);
+  F.d.provinsi.textContent   = val(p.provinsi);
+
+  // isian edit (supaya saat toggle edit sudah terisi)
+  F.e.nama.value       = val(p.nama, '');
+  F.e.nik.value        = val(p.nik, '');
+  F.e.ttl.value        = val(p.ttl, '');
+  F.e.agama.value      = val(p.agama, '');
+  F.e.jk.value         = val(p.jenis_kelamin, 'LAKI-LAKI');
+  F.e.status.value     = val(p.status_perkawinan, 'BELUM KAWIN');
+  F.e.pekerjaan.value  = val(p.pekerjaan, '');
+  F.e.alamat.value     = val(p.alamat, '');
+  F.e.kelurahan.value  = val(p.kelurahan, '');
+  F.e.kecamatan.value  = val(p.kecamatan, '');
+  F.e.kota_kab.value   = val(p.kota_kab, '');
+  F.e.provinsi.value   = val(p.provinsi, '');
+
+  // keterangan dinamis
+  if (F.keterangan_kelurahan) F.keterangan_kelurahan.textContent = val(p.kelurahan);
+
+  // logo opsional (kalau ada)
+  if (F.logo && obj.LogoURL) F.logo.src = obj.LogoURL;
+}
+
+function renderUploadedFiles(obj){
+  const box = F.uploadedList;
+  box.innerHTML = '';
+  const docs = normalizeDokumen(obj?.dokumen);
+  if (!docs.length){
+    box.innerHTML = '<div class="no-files-message">Belum ada file yang diupload</div>';
+    return;
+  }
+  for (const d of docs){
+    const div = document.createElement('div');
+    div.className = 'uploaded-file-item';
+    div.innerHTML = `
+      <div class="file-icon">📎</div>
+      <div class="file-details">
+        <div class="file-name">${d.name || d.label || '-'}</div>
+        <div class="file-meta">${d.mimeType || '-'} • ${d.size ? d.size.toLocaleString('id-ID')+' bytes' : '-'}</div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        ${d.view_url ? `<a class="btn ghost" href="${d.view_url}" target="_blank" rel="noopener">Lihat</a>` : ''}
+        ${d.download_url ? `<a class="btn ghost" href="${d.download_url}" target="_blank" rel="noopener">Unduh</a>` : ''}
+      </div>`;
+    box.appendChild(div);
+  }
+}
+
+/* ====== Loader JSON ====== */
+let lastObj = null;
+async function load(){
+  if (!JSON_URL) return;
+  const res = await fetch(JSON_URL+'?t='+Date.now(), { cache: 'no-store' });
+  const txt = await res.text();
+
+  // aman terhadap konten yang bukan JSON murni
+  let data;
+  try { data = JSON.parse(txt); }
+  catch { console.warn('Respon bukan JSON valid'); return; }
+
+  const root = Array.isArray(data) ? data[0] : data;
+  lastObj = root || {};
+  fillView(lastObj);
+  renderUploadedFiles(lastObj);
+}
+load();
+setInterval(load, 1500);
+
+/* ====== (Opsional) fungsi edit-mode agar tombol Edit tidak error ====== */
+function toggleEditMode(){ document.querySelector('.card').classList.toggle('edit-mode'); }
+function cancelEdit(){ document.querySelector('.card').classList.remove('edit-mode'); }
+function saveChanges(){
+  const p = lastObj.pemohon || (lastObj.pemohon = {});
+  p.nama = F.e.nama.value.trim();
+  p.nik = F.e.nik.value.trim();
+  p.ttl = F.e.ttl.value.trim();
+  p.agama = F.e.agama.value.trim();
+  p.jenis_kelamin = F.e.jk.value;
+  p.status_perkawinan = F.e.status.value;
+  p.pekerjaan = F.e.pekerjaan.value.trim();
+  p.alamat = F.e.alamat.value.trim();
+  p.kelurahan = F.e.kelurahan.value.trim();
+  p.kecamatan = F.e.kecamatan.value.trim();
+  p.kota_kab = F.e.kota_kab.value.trim();
+  p.provinsi = F.e.provinsi.value.trim();
+  // sinkron ke tampilan
+  fillView(lastObj);
+  toggleEditMode();
+}
 const F = { jenis_surat:E('jenis_surat'), nomor_surat:E('nomor_surat'), tanggal_surat:E('tanggal_surat'), operator:E('operator'),
   p:{ nama:E('p_nama'), nik:E('p_nik'), ttl:E('p_ttl'), agama:E('p_agama'), jk:E('p_jk'), status:E('p_status'), pekerjaan:E('p_pekerjaan'), alamat:E('p_alamat'), kelurahan:E('p_kelurahan'), kecamatan:E('p_kecamatan'), kota:E('p_kota'), prov:E('p_prov'), domisili:E('p_domisili') } };
 
