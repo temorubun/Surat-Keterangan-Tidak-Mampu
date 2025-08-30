@@ -1,353 +1,361 @@
 
-/* ====================== CONFIG & ENDPOINTS ====================== */
-const ID_USER_RAW = "1yKVeFVfqy8XRHvixY60DsxTy1ozC4GUa"; // ganti jika dirender via n8n
-function resolveIdUser(){
-  if (/\{\{\s*\$json\.id\s*\}\}/.test(ID_USER_RAW)){
-    const u = new URL(location.href);
-    return (u.searchParams.get('id')
-      || u.pathname.split('/').filter(Boolean).pop()
-      || "").trim();
-  }
-  return ID_USER_RAW.trim();
-}
-let ID_USER = resolveIdUser();
-let JSON_URL = ID_USER ? ("https://distrikwania.com/data/"+encodeURIComponent(ID_USER)) : "";
-
-/* --- ENDPOINTS n8n (ganti sesuai flow Anda) --- */
-const URL_CREATE       = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/57feb799-ddb2-4b0c-bfc0-b4e077558c79';
-const URL_UPDATE       = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/e1863045-3bfd-497d-b8a3-fc2c7c23eaa7';
-const URL_UPLOAD       = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/1ae8a1a1-9f9d-4792-8505-9c84e1d3654b';
-const URL_DELETE_FILE  = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/1ae8a1a1-9f9d-4792-8505-9c84e1d3654b'; // <-- GANTI ke webhook delete file Anda (URL_DELETE_FILE)
-
+/* =========================
+   1) KONFIGURASI & ENDPOINT
+   ========================= */
+const WEBHOOK_CREATE  = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/737cd7f5-bfa1-4b9c-b55a-21aa718bfc3d';
+const WEBHOOK_UPDATE  = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/e1863045-3bfd-497d-b8a3-fc2c7c23eaa7';
+const WEBHOOK_UPLOAD  = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/1ae8a1a1-9f9d-4792-8505-9c84e1d3654b';
+const WEBHOOK_DELETE  = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/d240d7b5-7395-4a13-9b1c-ebd4d6fe4589';
 const UPDATE_STRATEGY = 'OVERWRITE_BIN';
+const POLL_MS = 1000; // realtime di luar edit: 1 detik
 
-/* ====================== DOM HELPERS ====================== */
-const E = (id) => document.getElementById(id);
+/* =========================
+   2) ID_USER & SUMBER DATA
+   ========================= */
+const ID_USER_RAW = "{{ $json.id }}"; // pakai ?id=... bila tidak dirender n8n
+function resolveIdUser(){
+  if (/\{\{\s*\$json\.id\s*\}\}/.test(ID_USER_RAW)) {
+    const u = new URL(location.href);
+    const q = u.searchParams.get('id');
+    if (q) return q.trim();
+    const segs = u.pathname.split('/').filter(Boolean);
+    if (segs.length) return segs[segs.length-1];
+    return "";
+  }
+  return (ID_USER_RAW || "").trim();
+}
+const ID_USER = resolveIdUser();
+const JSON_URL = ID_USER ? ("https://distrikwania.com/data/" + encodeURIComponent(ID_USER)) : "";
 
-/* elemen yang ADA di HTML */
-const DOM = {
-  // header
-  jenis_surat: E('jenis_surat'),
-  nomor_surat: E('nomor_surat'),
-  tanggal_surat: E('tanggal_surat'),
-  operator:     E('operator'),
-  logo:         E('LogoURL'),
-
-  // identitas (view)
-  d: {
-    nama: E('nama'), nik: E('nik'), ttl: E('ttl'), agama: E('agama'),
-    jk: E('jenis_kelamin'), status: E('status_perkawinan'),
-    pekerjaan: E('pekerjaan'), alamat: E('alamat'),
-    kelurahan: E('kelurahan'), kecamatan: E('kecamatan'),
-    kota_kab: E('kota_kab'), provinsi: E('provinsi'),
-  },
-
-  // identitas (edit)
-  e: {
-    nama: E('editNama'), nik: E('editNIK'), ttl: E('editTTL'),
-    agama: E('editAgama'), jk: E('editJenisKelamin'),
-    status: E('editStatusPerkawinan'), pekerjaan: E('editPekerjaan'),
-    alamat: E('editAlamat'), kelurahan: E('editKelurahan'),
-    kecamatan: E('editKecamatan'), kota_kab: E('editKotaKab'),
-    provinsi: E('editProvinsi'),
-  },
-
-  // keterangan & list file
-  keterangan_kelurahan: E('keterangan_kelurahan'),
-  tahun: E('tahun'),
-  uploadedList: E('uploadedFilesList'),
-
-  // upload
-  fileInput: E('fileInput'),
-  uploadBtn: E('uploadBtn'),
-  fileInfo:  E('fileInfo'),
-  uploadProgress: E('uploadProgress'),
-  uploadProgressBar: E('uploadProgressBar'),
-
-  // popup sukses buat surat
-  popupOverlay: E('popupOverlay'),
-};
-if (DOM.tahun) DOM.tahun.textContent = new Date().getFullYear();
-
-/* ====================== UTILS ====================== */
-function safe(x, fb='-'){ return (x ?? '').toString().trim() || fb; }
-function normalizeDokumen(docs){
-  const arr = Array.isArray(docs) ? docs : [];
-  const out = []; const seen = new Set();
+/* =========================
+   3) UTIL & ELEMEN
+   ========================= */
+const $ = (id) => document.getElementById(id);
+function toStr(x, fb='-'){ const v=(x??'').toString().trim(); return v.length?v:fb; }
+function isJSONResponse(res){ return (res.headers.get('content-type')||'').toLowerCase().includes('application/json'); }
+async function hashText(txt){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function pickObj(root){
+  if (!root) return {};
+  if (Array.isArray(root?.data) && root.data[0]) return root.data[0];
+  if (Array.isArray(root) && root[0]) return root[0];
+  return root;
+}
+function normalizeDocs(docs){
+  const arr = Array.isArray(docs)? docs.filter(Boolean):[];
+  const seen=new Set(); const out=[];
   for (const d of arr){
-    const fid = d?.file_id || d?.id || null;
-    const key = fid ? ('fid:'+fid) : ('name:'+(d?.name||'').toLowerCase()+'|size:'+(d?.size||0));
+    const fid = d?.file_id || d?.id || d?.fileId || null;
+    const hasUrl = !!(d?.view_url || d?.download_url);
+    if (!fid && !hasUrl) continue;
+    const key = fid ? `fid:${fid}` : `name:${(d?.name||'').toLowerCase()}|size:${d?.size||0}`;
     if (seen.has(key)) continue; seen.add(key);
     out.push({
       label: d?.label ?? d?.name ?? '-',
-      name: d?.name ?? d?.label ?? '-',
-      mimeType: d?.mimeType ?? null,
-      size: typeof d?.size==='number' ? d.size : (+d?.size || null),
+      name:  d?.name  ?? d?.label ?? '-',
       file_id: fid,
       view_url: d?.view_url ?? null,
-      download_url: d?.download_url ?? null,
+      download_url: d?.download_url ?? null
     });
   }
   return out;
 }
 
-/* ====================== RENDERERS ====================== */
-function fillView(obj){
-  // header
-  if (DOM.jenis_surat)   DOM.jenis_surat.textContent   = safe(obj.jenis_surat);
-  if (DOM.nomor_surat)   DOM.nomor_surat.textContent   = safe(obj.nomor_surat);
-  if (DOM.tanggal_surat) DOM.tanggal_surat.textContent = safe(obj.tanggal_surat);
-  if (DOM.operator)      DOM.operator.textContent      = safe(obj.operator);
-  if (DOM.logo && obj.LogoURL) DOM.logo.src = obj.LogoURL;
+/* =========================
+   4) STATE GLOBAL
+   ========================= */
+let lastJSON=null, lastObj={}, lastHash=null;
+let editMode=false, pollHandle=null;
+let pendingFiles=[];
 
-  // identitas view
-  const p = obj.pemohon || {};
-  if (DOM.d.nama)       DOM.d.nama.textContent       = safe(p.nama);
-  if (DOM.d.nik)        DOM.d.nik.textContent        = safe(p.nik);
-  if (DOM.d.ttl)        DOM.d.ttl.textContent        = safe(p.ttl);
-  if (DOM.d.agama)      DOM.d.agama.textContent      = safe(p.agama);
-  if (DOM.d.jk)         DOM.d.jk.textContent         = safe(p.jenis_kelamin);
-  if (DOM.d.status)     DOM.d.status.textContent     = safe(p.status_perkawinan);
-  if (DOM.d.pekerjaan)  DOM.d.pekerjaan.textContent  = safe(p.pekerjaan);
-  if (DOM.d.alamat)     DOM.d.alamat.textContent     = safe(p.alamat);
-  if (DOM.d.kelurahan)  DOM.d.kelurahan.textContent  = safe(p.kelurahan);
-  if (DOM.d.kecamatan)  DOM.d.kecamatan.textContent  = safe(p.kecamatan);
-  if (DOM.d.kota_kab)   DOM.d.kota_kab.textContent   = safe(p.kota_kab);
-  if (DOM.d.provinsi)   DOM.d.provinsi.textContent   = safe(p.provinsi);
-  if (DOM.keterangan_kelurahan) DOM.keterangan_kelurahan.textContent = safe(p.kelurahan);
+/* =========================
+   5) PETA ELEMEN
+   ========================= */
+const VIEW = {
+  logo: $('LogoURL'),
+  jenis_surat: $('jenis_surat'),
+  nomor_surat: $('nomor_surat'),
+  operator: $('operator'),
+  tanggal_surat: $('tanggal_surat'),
+  ref: $('ref'),
+  from: $('WAHA_Trigger_payload_from'),
+  tahun: $('tahun'),
+  // pemohon
+  nama: $('nama'), nik: $('nik'), ttl: $('ttl'), agama: $('agama'),
+  jenis_kelamin: $('jenis_kelamin'), status_perkawinan: $('status_perkawinan'),
+  pekerjaan: $('pekerjaan'), alamat: $('alamat'),
+  kelurahan: $('kelurahan'), kecamatan: $('kecamatan'),
+  kota_kab: $('kota_kab'), provinsi: $('provinsi'),
+  ket_kel: $('keterangan_kelurahan'),
+  // files
+  filesList: $('uploadedFilesList')
+};
+const EDIT = {
+  nama: $('editNama'), nik: $('editNIK'), ttl: $('editTTL'), agama: $('editAgama'),
+  jk: $('editJenisKelamin'), status: $('editStatusPerkawinan'), pekerjaan: $('editPekerjaan'),
+  alamat: $('editAlamat'), kelurahan: $('editKelurahan'), kecamatan: $('editKecamatan'),
+  kota_kab: $('editKotaKab'), provinsi: $('editProvinsi'),
+};
+const elFileInput=$('fileInput'), elFileInfo=$('fileInfo'), elUploadBtn=$('uploadBtn');
+const elProg=$('uploadProgress'), elProgBar=$('uploadProgressBar');
+const popupOverlay=$('popupOverlay');
 
-  // sinkron nilai awal ke input edit
-  if (DOM.e.nama)       DOM.e.nama.value       = safe(p.nama,'');
-  if (DOM.e.nik)        DOM.e.nik.value        = safe(p.nik,'');
-  if (DOM.e.ttl)        DOM.e.ttl.value        = safe(p.ttl,'');
-  if (DOM.e.agama)      DOM.e.agama.value      = safe(p.agama,'');
-  if (DOM.e.jk)         DOM.e.jk.value         = safe(p.jenis_kelamin,'LAKI-LAKI');
-  if (DOM.e.status)     DOM.e.status.value     = safe(p.status_perkawinan,'BELUM KAWIN');
-  if (DOM.e.pekerjaan)  DOM.e.pekerjaan.value  = safe(p.pekerjaan,'');
-  if (DOM.e.alamat)     DOM.e.alamat.value     = safe(p.alamat,'');
-  if (DOM.e.kelurahan)  DOM.e.kelurahan.value  = safe(p.kelurahan,'');
-  if (DOM.e.kecamatan)  DOM.e.kecamatan.value  = safe(p.kecamatan,'');
-  if (DOM.e.kota_kab)   DOM.e.kota_kab.value   = safe(p.kota_kab,'');
-  if (DOM.e.provinsi)   DOM.e.provinsi.value   = safe(p.provinsi,'');
-}
-
-function renderUploadedFiles(obj){
-  const box = DOM.uploadedList;
-  if (!box) return;
-  box.innerHTML = '';
-  const docs = normalizeDokumen(obj?.dokumen);
+/* =========================
+   6) RENDERING
+   ========================= */
+function renderStatic(){ if (VIEW.tahun) VIEW.tahun.textContent = String(new Date().getFullYear()); }
+function renderFiles(obj){
+  const wrap = VIEW.filesList; if (!wrap) return;
+  const docs = normalizeDocs(obj?.dokumen);
+  wrap.innerHTML = '';
   if (!docs.length){
-    box.innerHTML = '<div class="no-files-message">Belum ada file yang diupload</div>';
-    return;
+    const div = document.createElement('div');
+    div.className='no-files-message'; div.textContent='Belum ada file yang diupload';
+    wrap.appendChild(div); return;
   }
-  for (const d of docs){
-    const row = document.createElement('div');
-    row.className = 'uploaded-file-item';
-    const btnDelete = d.file_id ? `<button class="file-remove" onclick="deleteSingleFile('${d.file_id}')">Hapus</button>` : '';
-    row.innerHTML = `
-      <div class="file-icon">📎</div>
-      <div class="file-details">
-        <div class="file-name">${d.name || d.label || '-'}</div>
-        <div class="file-meta">${d.mimeType || '-'} • ${d.size ? d.size.toLocaleString('id-ID')+' bytes' : '-'}</div>
-      </div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        ${d.view_url ? `<a class="btn ghost" href="${d.view_url}" target="_blank" rel="noopener">Lihat</a>` : ''}
-        ${d.download_url ? `<a class="btn ghost" href="${d.download_url}" target="_blank" rel="noopener">Unduh</a>` : ''}
-        ${btnDelete}
-      </div>`;
-    box.appendChild(row);
-  }
+  docs.forEach(d=>{
+    const row=document.createElement('div');
+    row.className='uploaded-file-item';
+    row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center';
+
+    const left=document.createElement('div');
+    const name = toStr(d.name);
+    const fid  = d.file_id ? `<code style="font-size:12px;opacity:.85">${d.file_id}</code>` : '<i style="font-size:12px;opacity:.6">ID tidak tersedia</i>';
+    left.innerHTML = `<div class="file-name">${name}</div><div>${fid}</div>`;
+
+    const right=document.createElement('div');
+    right.style.display='flex'; right.style.gap='8px';
+    if (d.view_url){ const a=document.createElement('a'); a.href=d.view_url; a.target='_blank'; a.rel='noopener'; a.textContent='Lihat'; a.className='btn ghost'; right.appendChild(a); }
+    if (d.download_url){ const a=document.createElement('a'); a.href=d.download_url; a.target='_blank'; a.rel='noopener'; a.textContent='Unduh'; a.className='btn ghost'; right.appendChild(a); }
+    if (d.file_id){ const del=document.createElement('button'); del.className='btn danger'; del.textContent='Hapus'; del.onclick=()=>deleteDocumentsByFileIds([d.file_id]); right.appendChild(del); }
+
+    row.appendChild(left); row.appendChild(right); wrap.appendChild(row);
+  });
+}
+function renderView(obj){
+  if (VIEW.jenis_surat) VIEW.jenis_surat.textContent = toStr(obj.jenis_surat,'Surat Keterangan Tidak Mampu (SKTM)');
+  if (VIEW.nomor_surat) VIEW.nomor_surat.textContent = toStr(obj.nomor_surat,'—');
+  if (VIEW.operator) VIEW.operator.textContent = toStr(obj.operator,'—');
+  if (VIEW.tanggal_surat) VIEW.tanggal_surat.textContent = toStr(obj.tanggal_surat, new Date().toLocaleDateString('id-ID'));
+  if (VIEW.ref) VIEW.ref.textContent = toStr(obj.ref, ID_USER || '—');
+  if (VIEW.from) VIEW.from.textContent = toStr(obj.WAHA_Trigger_payload_from,'—');
+  if (VIEW.logo){ const logo=obj.LogoURL||obj.logo_url||''; if (logo) VIEW.logo.src=logo; }
+
+  const p=obj.pemohon||{};
+  if (VIEW.nama) VIEW.nama.textContent = toStr(p.nama);
+  if (VIEW.nik) VIEW.nik.textContent = toStr(p.nik);
+  if (VIEW.ttl) VIEW.ttl.textContent = toStr(p.ttl);
+  if (VIEW.agama) VIEW.agama.textContent = toStr(p.agama);
+  if (VIEW.jenis_kelamin) VIEW.jenis_kelamin.textContent = toStr(p.jenis_kelamin);
+  if (VIEW.status_perkawinan) VIEW.status_perkawinan.textContent = toStr(p.status_perkawinan);
+  if (VIEW.pekerjaan) VIEW.pekerjaan.textContent = toStr(p.pekerjaan);
+  if (VIEW.alamat) VIEW.alamat.textContent = toStr(p.alamat);
+  if (VIEW.kelurahan) VIEW.kelurahan.textContent = toStr(p.kelurahan);
+  if (VIEW.kecamatan) VIEW.kecamatan.textContent = toStr(p.kecamatan);
+  if (VIEW.kota_kab) VIEW.kota_kab.textContent = toStr(p.kota_kab);
+  if (VIEW.provinsi) VIEW.provinsi.textContent = toStr(p.provinsi);
+  if (VIEW.ket_kel) VIEW.ket_kel.textContent = toStr(p.kelurahan);
+
+  // seed field edit
+  if (EDIT.nama) EDIT.nama.value = p.nama ?? '';
+  if (EDIT.nik) EDIT.nik.value = p.nik ?? '';
+  if (EDIT.ttl) EDIT.ttl.value = p.ttl ?? '';
+  if (EDIT.agama) EDIT.agama.value = p.agama ?? '';
+  if (EDIT.jk) EDIT.jk.value = p.jenis_kelamin ?? 'LAKI-LAKI';
+  if (EDIT.status) EDIT.status.value = p.status_perkawinan ?? 'BELUM KAWIN';
+  if (EDIT.pekerjaan) EDIT.pekerjaan.value = p.pekerjaan ?? '';
+  if (EDIT.alamat) EDIT.alamat.value = p.alamat ?? '';
+  if (EDIT.kelurahan) EDIT.kelurahan.value = p.kelurahan ?? '';
+  if (EDIT.kecamatan) EDIT.kecamatan.value = p.kecamatan ?? '';
+  if (EDIT.kota_kab) EDIT.kota_kab.value = p.kota_kab ?? '';
+  if (EDIT.provinsi) EDIT.provinsi.value = p.provinsi ?? '';
+
+  renderFiles(obj);
 }
 
-/* ====================== LOADER ====================== */
-let lastObj = null;
-async function load(){
-  if (!JSON_URL) return;
-  const res = await fetch(JSON_URL+'?t='+Date.now(), { cache: 'no-store' });
-  const txt = await res.text();
-  let data;
-  try { data = JSON.parse(txt); }
-  catch { console.warn('Respon bukan JSON valid'); return; }
-  const root = Array.isArray(data) ? data[0] : data;
-  lastObj = root || {};
-  fillView(lastObj);
-  renderUploadedFiles(lastObj);
-}
-load();
-let loadInterval = setInterval(load, 1200);
+/* =========================
+   7) POLLING REALTIME (1s)
+   ========================= */
+function startPolling(){ stopPolling(); pollHandle=setInterval(()=>{ if(!editMode) loadOnce(); }, POLL_MS); }
+function stopPolling(){ if(pollHandle){ clearInterval(pollHandle); pollHandle=null; } }
 
-/* ====================== EDIT MODE (TOMBOL EDIT) ====================== */
+/* =========================
+   8) MODE EDIT & SIMPAN (UPDATE)
+   ========================= */
 function toggleEditMode(){
-  const card = document.querySelector('.card');
-  card.classList.toggle('edit-mode');
-  if (card.classList.contains('edit-mode')){
-    clearInterval(loadInterval); // pause refresh saat edit
-  } else {
-    load();
-    loadInterval = setInterval(load, 1200);
+  editMode = !editMode;
+  document.body.classList.toggle('edit-mode', editMode);
+  const btn = $('editBtn'); if (btn) btn.textContent = editMode ? '🔒 Selesai Edit' : '✏️ Edit Data';
+  if (editMode) stopPolling(); else { loadOnce(); startPolling(); }
+}
+function cancelEdit(){ renderView(lastObj||{}); if (editMode) toggleEditMode(); }
+
+/* “Simpan Perubahan” => UPDATE */
+async function saveChanges(){
+  try{
+    if (!lastObj || typeof lastObj!=='object') lastObj = {};
+    if (!lastObj.pemohon) lastObj.pemohon = {};
+    const p = lastObj.pemohon;
+    p.nama = EDIT.nama?.value ?? p.nama;
+    p.nik = EDIT.nik?.value ?? p.nik;
+    p.ttl = EDIT.ttl?.value ?? p.ttl;
+    p.agama = EDIT.agama?.value ?? p.agama;
+    p.jenis_kelamin = EDIT.jk?.value ?? p.jenis_kelamin;
+    p.status_perkawinan = EDIT.status?.value ?? p.status_perkawinan;
+    p.pekerjaan = EDIT.pekerjaan?.value ?? p.pekerjaan;
+    p.alamat = EDIT.alamat?.value ?? p.alamat;
+    p.kelurahan = EDIT.kelurahan?.value ?? p.kelurahan;
+    p.kecamatan = EDIT.kecamatan?.value ?? p.kecamatan;
+    p.kota_kab = EDIT.kota_kab?.value ?? p.kota_kab;
+    p.provinsi = EDIT.provinsi?.value ?? p.provinsi;
+
+    const edited = JSON.parse(JSON.stringify(lastObj||{}));
+    if (UPDATE_STRATEGY==='OVERWRITE_BIN') edited.dokumen = normalizeDocs(lastObj?.dokumen);
+    const payload = { action:'UPDATE_ONLY', strategy:UPDATE_STRATEGY, id_user:ID_USER, data:edited };
+    const resp = await fetch(WEBHOOK_UPDATE, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    if (!resp.ok){ const t=await resp.text(); throw new Error('HTTP '+resp.status+' — '+t.slice(0,200)); }
+
+    renderView(lastObj);
+    if (editMode) toggleEditMode();
+    alert('Perubahan disimpan ✓');
+  }catch(e){
+    alert('Gagal menyimpan perubahan: ' + e.message);
   }
 }
-function cancelEdit(){
-  document.querySelector('.card').classList.remove('edit-mode');
-  load();
-  clearInterval(loadInterval);
-  loadInterval = setInterval(load, 1200);
-}
-function saveChanges(){
-  if (!lastObj) lastObj = {};
-  const p = lastObj.pemohon || (lastObj.pemohon = {});
-  p.nama = DOM.e.nama?.value?.trim() || '';
-  p.nik  = DOM.e.nik?.value?.trim() || '';
-  p.ttl  = DOM.e.ttl?.value?.trim() || '';
-  p.agama = DOM.e.agama?.value?.trim() || '';
-  p.jenis_kelamin = DOM.e.jk?.value || '';
-  p.status_perkawinan = DOM.e.status?.value || '';
-  p.pekerjaan = DOM.e.pekerjaan?.value?.trim() || '';
-  p.alamat = DOM.e.alamat?.value?.trim() || '';
-  p.kelurahan = DOM.e.kelurahan?.value?.trim() || '';
-  p.kecamatan = DOM.e.kecamatan?.value?.trim() || '';
-  p.kota_kab = DOM.e.kota_kab?.value?.trim() || '';
-  p.provinsi = DOM.e.provinsi?.value?.trim() || '';
-  fillView(lastObj);
-  toggleEditMode();
-}
 
-/* ====================== FUNGSI TOMBOL: BUAT/UPDATE/UPLOAD/DELETE ====================== */
-function buildCleanPayload(){
-  const base = lastObj || {};
-  const obj = JSON.parse(JSON.stringify(base));
-  if (Array.isArray(obj.dokumen)) obj.dokumen = normalizeDokumen(obj.dokumen);
-  obj.id_user = ID_USER;
-  return obj;
+/* =========================
+   9) MUAT DATA (dipanggil polling)
+   ========================= */
+async function loadOnce(){
+  try{
+    if (!JSON_URL) return console.warn('ID_USER kosong.');
+    const res = await fetch(JSON_URL + '?t=' + Date.now(), { cache:'no-store' });
+    const text = await res.text();
+    if (!res.ok) throw new Error('HTTP '+res.status+' — '+text.slice(0,200));
+    let data; try{ data = JSON.parse(text); } catch(err){ if (!isJSONResponse(res)) throw new Error('Respon bukan JSON'); throw err; }
+    const h = await hashText(JSON.stringify(data));
+    if (h !== lastHash){
+      lastHash = h; lastJSON = data; lastObj = pickObj(data) || {};
+      renderView(lastObj);
+    }
+  }catch(e){ console.error('Load error:', e.message); }
 }
+function startRealtime(){ renderStatic(); loadOnce(); startPolling(); }
 
+/* =========================
+   10) AKSI: CREATE / DELETE / UPLOAD
+   ========================= */
+function buildPayload(base){ return { ...(base||{}), id_user: ID_USER }; }
+
+/* === Tombol “Buat Surat & Kirim Data” (CREATE) === */
 async function generateAndSendLetter(){
   try{
-    const payload = buildCleanPayload();
-    const resp = await fetch(URL_CREATE, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
+    if (editMode) await saveChanges(); // pastikan state terkini terkirim
+    const resp = await fetch(WEBHOOK_CREATE, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(buildPayload(lastObj))
     });
-    if(!resp.ok) throw new Error('HTTP '+resp.status+' — '+(await resp.text()).slice(0,200));
-    if (DOM.popupOverlay) DOM.popupOverlay.style.display = 'flex';
-  }catch(e){
-    alert('Gagal membuat surat: '+e.message);
-  }
+    if (!resp.ok){ const t=await resp.text(); throw new Error('HTTP '+resp.status+' — '+t.slice(0,200)); }
+    openPopup(); // tampilkan popup sukses
+  }catch(e){ alert('Gagal membuat & mengirim surat: '+e.message); }
 }
-function closePopup(){ if (DOM.popupOverlay) DOM.popupOverlay.style.display = 'none'; }
 
+/* — Hapus seluruh data/surat — */
 async function deleteLetterAndData(){
-  if(!confirm('Hapus surat & data untuk ID: '+ID_USER+' ?')) return;
+  if (!confirm('Yakin hapus SURAT dan DATA ini?')) return;
   try{
-    const resp = await fetch(URL_UPDATE, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'DELETE_ALL', id_user:ID_USER })
-    });
-    if(!resp.ok) throw new Error('HTTP '+resp.status+' — '+(await resp.text()).slice(0,200));
-    alert('Data terhapus.');
-    load();
-  }catch(e){
-    alert('Gagal menghapus: '+e.message);
-  }
-}
-
-/* ---- HAPUS SATU FILE via URL_DELETE_FILE ---- */
-async function deleteSingleFile(fileId){
-  if(!fileId){ alert('file_id tidak ditemukan.'); return; }
-  if(!confirm('Hapus file ini?\nID: '+fileId)) return;
-  try{
-    const resp = await fetch(URL_DELETE_FILE, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'DELETE_FILE', id_user: ID_USER, file_id: fileId })
+    const resp = await fetch(WEBHOOK_DELETE, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'DELETE_ALL', id_user: ID_USER, data: buildPayload(lastObj) })
     });
     const text = await resp.text();
-    if(!resp.ok) throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));
-    // refresh data
-    await load();
-  }catch(e){
-    alert('Gagal menghapus file: '+e.message);
-  }
+    if (!resp.ok){ throw new Error('HTTP '+resp.status+' — '+text.slice(0,200)); }
+    alert('Data & surat dihapus ✓'); await loadOnce();
+  }catch(e){ alert('Gagal menghapus: '+e.message); }
 }
 
+/* — Upload berkas — */
+function handleFileSelect(ev){ pendingFiles = Array.from(ev.target.files||[]); refreshPendingFilesUI(); }
+function handleDragOver(ev){ ev.preventDefault(); ev.stopPropagation(); ev.currentTarget.style.borderColor='rgba(56,189,248,.6)'; ev.currentTarget.style.background='rgba(56,189,248,.06)'; }
+function handleDragLeave(ev){ ev.preventDefault(); ev.stopPropagation(); ev.currentTarget.style.borderColor=''; ev.currentTarget.style.background=''; }
+function handleDrop(ev){ ev.preventDefault(); ev.stopPropagation(); ev.currentTarget.style.borderColor=''; ev.currentTarget.style.background=''; pendingFiles = Array.from(ev.dataTransfer.files||[]); refreshPendingFilesUI(); }
+function refreshPendingFilesUI(){
+  if (!elFileInfo || !elUploadBtn) return;
+  if (!pendingFiles.length){ elFileInfo.style.display='none'; elUploadBtn.style.display='none'; return; }
+  elFileInfo.style.display=''; elUploadBtn.style.display='';
+  elFileInfo.innerHTML = '<div style="font-weight:600;margin-bottom:6px">File akan diupload:</div>' +
+    pendingFiles.map(f=>`<div style="font-size:12px">${f.name}</div>`).join('');
+}
 async function uploadFiles(){
   try{
-    const files = Array.from(DOM.fileInput?.files || []);
-    if(!files.length){ alert('Pilih minimal satu file.'); return; }
+    if (!pendingFiles.length) return alert('Pilih minimal satu file.');
+    if (!lastObj && !lastJSON) return alert('Belum ada data utama.');
 
-    if (DOM.fileInfo) DOM.fileInfo.style.display = 'block';
-    if (DOM.uploadProgress) DOM.uploadProgress.style.display = 'block';
-    if (DOM.uploadProgressBar) DOM.uploadProgressBar.style.width = '0%';
-
-    const payload = buildCleanPayload();
-    const files_info = files.map(f=>({name:f.name,size:f.size,type:f.type||null}));
-
+    if (editMode) await saveChanges();
     const form = new FormData();
-    form.append('data', JSON.stringify(payload));
+    form.append('data', JSON.stringify(buildPayload(lastObj)));
     form.append('id_user', ID_USER);
-    form.append('files_info', JSON.stringify(files_info));
-    files.forEach(f => form.append('files[]', f, f.name));
+    pendingFiles.forEach(f=> form.append('files[]', f, f.name));
 
-    const resp = await fetch(URL_UPLOAD, { method:'POST', body:form });
+    if (elProg) elProg.style.display=''; if (elProgBar) elProgBar.style.width='8%';
+    const resp = await fetch(WEBHOOK_UPLOAD, { method:'POST', body: form });
     const text = await resp.text();
-    if(!resp.ok) throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));
+    if (!resp.ok) throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));
 
-    if (DOM.uploadProgressBar) DOM.uploadProgressBar.style.width = '100%';
-    DOM.fileInput.value = '';
-    await load();
-    alert('Upload sukses.');
+    if (elProgBar) elProgBar.style.width='100%';
+    alert('Upload sukses ✓');
+    pendingFiles=[]; if (elFileInput) elFileInput.value=''; refreshPendingFilesUI();
+    await loadOnce();
   }catch(e){
     alert('Upload gagal: '+e.message);
   }finally{
-    if (DOM.uploadBtn) DOM.uploadBtn.style.display = 'none';
-    if (DOM.uploadProgressBar) setTimeout(()=>{ DOM.uploadProgressBar.style.width='0%'; }, 800);
+    setTimeout(()=>{ if (elProg) elProg.style.display='none'; }, 600);
+    if (elProgBar) elProgBar.style.width='0%';
   }
 }
 
-/* ====================== DRAG & DROP & FILE SELECT ====================== */
-function handleDragOver(ev){
-  ev.preventDefault();
-  ev.currentTarget.style.borderColor = 'rgba(56,189,248,.8)';
-}
-function handleDragLeave(ev){
-  ev.currentTarget.style.borderColor = 'rgba(148,163,184,.15)';
-}
-function handleDrop(ev){
-  ev.preventDefault();
-  ev.currentTarget.style.borderColor = 'rgba(148,163,184,.15)';
-  if (!DOM.fileInput) return;
-  const dt = new DataTransfer();
-  for (const f of ev.dataTransfer.files) dt.items.add(f);
-  DOM.fileInput.files = dt.files;
-  handleFileSelect();
-}
-function handleFileSelect(){
-  const files = Array.from(DOM.fileInput?.files || []);
-  if (files.length){
-    if (DOM.fileInfo){
-      DOM.fileInfo.innerHTML = files.map(f=>`<div class="file-info">• ${f.name} (${(f.size||0).toLocaleString('id-ID')} B)</div>`).join('');
-      DOM.fileInfo.style.display = 'block';
-    }
-    if (DOM.uploadBtn) DOM.uploadBtn.style.display = 'block';
-  }else{
-    if (DOM.fileInfo){ DOM.fileInfo.style.display='none'; DOM.fileInfo.innerHTML=''; }
-    if (DOM.uploadBtn) DOM.uploadBtn.style.display = 'none';
-  }
+/* =========================
+   11) HAPUS DOKUMEN
+   ========================= */
+async function deleteDocumentsByFileIds(fileIds=[]){
+  if (!fileIds.length) return;
+  if (!confirm('Hapus dokumen berikut?\n'+fileIds.join('\n'))) return;
+  try{
+    const payload = { action:'DELETE_DOCS', id_user:ID_USER, delete_file_ids:fileIds, data: buildPayload(lastObj) };
+    const resp = await fetch(WEBHOOK_UPDATE, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    if (!resp.ok){ const t=await resp.text(); throw new Error('HTTP '+resp.status+' — '+t.slice(0,200)); }
+    await loadOnce(); alert('Dokumen dihapus ✓');
+  }catch(e){ alert('Gagal menghapus dokumen: '+e.message); }
 }
 
-/* ====================== EKSPOR FUNGSI KE WINDOW ====================== */
-window.generateAndSendLetter = generateAndSendLetter;
-window.deleteLetterAndData  = deleteLetterAndData;
-window.deleteSingleFile     = deleteSingleFile;
-window.uploadFiles          = uploadFiles;
-window.handleDragOver       = handleDragOver;
-window.handleDragLeave      = handleDragLeave;
-window.handleDrop           = handleDrop;
-window.handleFileSelect     = handleFileSelect;
-window.toggleEditMode       = toggleEditMode;
-window.cancelEdit           = cancelEdit;
-window.saveChanges          = saveChanges;
-window.closePopup           = closePopup;
+/* =========================
+   12) POPUP
+   ========================= */
+function openPopup(){ if (popupOverlay) popupOverlay.style.display='flex'; }
+function closePopup(){ if (popupOverlay) popupOverlay.style.display='none'; }
+window.closePopup = closePopup;
 
+/* =========================
+   13) EKSPOR GLOBAL
+   ========================= */
+window.toggleEditMode = toggleEditMode;
+window.saveChanges = saveChanges;                // tombol "Simpan Perubahan" → UPDATE
+window.cancelEdit = cancelEdit;
+window.uploadFiles = uploadFiles;
+window.generateAndSendLetter = generateAndSendLetter; // tombol "Buat Surat & Kirim Data" → CREATE
+window.deleteLetterAndData = deleteLetterAndData;
+window.handleFileSelect = handleFileSelect;
+window.handleDragOver = handleDragOver;
+window.handleDragLeave = handleDragLeave;
+window.handleDrop = handleDrop;
+
+/* =========================
+   14) START
+   ========================= */
+document.addEventListener('DOMContentLoaded', startRealtime);
