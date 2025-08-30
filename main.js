@@ -186,7 +186,7 @@ async function load(){
   renderUploadedFiles(lastObj);
 }
 load();
-setInterval(load, 1500);
+setInterval(load, 500);
 
 /* ====== (Opsional) fungsi edit-mode agar tombol Edit tidak error ====== */
 function toggleEditMode(){ document.querySelector('.card').classList.toggle('edit-mode'); }
