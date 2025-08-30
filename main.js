@@ -14,9 +14,10 @@ let ID_USER = resolveIdUser();
 let JSON_URL = ID_USER ? ("https://distrikwania.com/data/"+encodeURIComponent(ID_USER)) : "";
 
 /* --- ENDPOINTS n8n (ganti sesuai flow Anda) --- */
-const URL_CREATE = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/57feb799-ddb2-4b0c-bfc0-b4e077558c79';
-const URL_UPDATE = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/e1863045-3bfd-497d-b8a3-fc2c7c23eaa7';
-const URL_UPLOAD = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/1ae8a1a1-9f9d-4792-8505-9c84e1d3654b';
+const URL_CREATE       = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/57feb799-ddb2-4b0c-bfc0-b4e077558c79';
+const URL_UPDATE       = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/e1863045-3bfd-497d-b8a3-fc2c7c23eaa7';
+const URL_UPLOAD       = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/1ae8a1a1-9f9d-4792-8505-9c84e1d3654b';
+const URL_DELETE_FILE  = 'https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/1ae8a1a1-9f9d-4792-8505-9c84e1d3654b'; // <-- GANTI ke webhook delete file Anda (URL_DELETE_FILE)
 
 const UPDATE_STRATEGY = 'OVERWRITE_BIN';
 
@@ -142,15 +143,17 @@ function renderUploadedFiles(obj){
   for (const d of docs){
     const row = document.createElement('div');
     row.className = 'uploaded-file-item';
+    const btnDelete = d.file_id ? `<button class="file-remove" onclick="deleteSingleFile('${d.file_id}')">Hapus</button>` : '';
     row.innerHTML = `
       <div class="file-icon">📎</div>
       <div class="file-details">
         <div class="file-name">${d.name || d.label || '-'}</div>
         <div class="file-meta">${d.mimeType || '-'} • ${d.size ? d.size.toLocaleString('id-ID')+' bytes' : '-'}</div>
       </div>
-      <div style="display:flex; gap:8px;">
+      <div style="display:flex; gap:8px; align-items:center;">
         ${d.view_url ? `<a class="btn ghost" href="${d.view_url}" target="_blank" rel="noopener">Lihat</a>` : ''}
         ${d.download_url ? `<a class="btn ghost" href="${d.download_url}" target="_blank" rel="noopener">Unduh</a>` : ''}
+        ${btnDelete}
       </div>`;
     box.appendChild(row);
   }
@@ -213,9 +216,7 @@ function saveChanges(){
 function buildCleanPayload(){
   const base = lastObj || {};
   const obj = JSON.parse(JSON.stringify(base));
-  // pastikan dokumen sudah dinormalisasi
   if (Array.isArray(obj.dokumen)) obj.dokumen = normalizeDokumen(obj.dokumen);
-  // tambahkan id_user agar backend tahu file tujuan
   obj.id_user = ID_USER;
   return obj;
 }
@@ -229,7 +230,6 @@ async function generateAndSendLetter(){
       body: JSON.stringify(payload)
     });
     if(!resp.ok) throw new Error('HTTP '+resp.status+' — '+(await resp.text()).slice(0,200));
-    // tampilkan popup sukses
     if (DOM.popupOverlay) DOM.popupOverlay.style.display = 'flex';
   }catch(e){
     alert('Gagal membuat surat: '+e.message);
@@ -240,7 +240,6 @@ function closePopup(){ if (DOM.popupOverlay) DOM.popupOverlay.style.display = 'n
 async function deleteLetterAndData(){
   if(!confirm('Hapus surat & data untuk ID: '+ID_USER+' ?')) return;
   try{
-    // Kirim perintah hapus total (sesuaikan dengan flow di n8n)
     const resp = await fetch(URL_UPDATE, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -254,12 +253,30 @@ async function deleteLetterAndData(){
   }
 }
 
+/* ---- HAPUS SATU FILE via URL_DELETE_FILE ---- */
+async function deleteSingleFile(fileId){
+  if(!fileId){ alert('file_id tidak ditemukan.'); return; }
+  if(!confirm('Hapus file ini?\nID: '+fileId)) return;
+  try{
+    const resp = await fetch(URL_DELETE_FILE, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'DELETE_FILE', id_user: ID_USER, file_id: fileId })
+    });
+    const text = await resp.text();
+    if(!resp.ok) throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));
+    // refresh data
+    await load();
+  }catch(e){
+    alert('Gagal menghapus file: '+e.message);
+  }
+}
+
 async function uploadFiles(){
   try{
     const files = Array.from(DOM.fileInput?.files || []);
     if(!files.length){ alert('Pilih minimal satu file.'); return; }
 
-    // tampilkan UI progres
     if (DOM.fileInfo) DOM.fileInfo.style.display = 'block';
     if (DOM.uploadProgress) DOM.uploadProgress.style.display = 'block';
     if (DOM.uploadProgressBar) DOM.uploadProgressBar.style.width = '0%';
@@ -277,7 +294,6 @@ async function uploadFiles(){
     const text = await resp.text();
     if(!resp.ok) throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));
 
-    // progres penuh & reset input
     if (DOM.uploadProgressBar) DOM.uploadProgressBar.style.width = '100%';
     DOM.fileInput.value = '';
     await load();
@@ -285,7 +301,6 @@ async function uploadFiles(){
   }catch(e){
     alert('Upload gagal: '+e.message);
   }finally{
-    // sembunyikan tombol upload lagi
     if (DOM.uploadBtn) DOM.uploadBtn.style.display = 'none';
     if (DOM.uploadProgressBar) setTimeout(()=>{ DOM.uploadProgressBar.style.width='0%'; }, 800);
   }
@@ -303,7 +318,6 @@ function handleDrop(ev){
   ev.preventDefault();
   ev.currentTarget.style.borderColor = 'rgba(148,163,184,.15)';
   if (!DOM.fileInput) return;
-  // gunakan DataTransfer ke input file
   const dt = new DataTransfer();
   for (const f of ev.dataTransfer.files) dt.items.add(f);
   DOM.fileInput.files = dt.files;
@@ -326,6 +340,7 @@ function handleFileSelect(){
 /* ====================== EKSPOR FUNGSI KE WINDOW ====================== */
 window.generateAndSendLetter = generateAndSendLetter;
 window.deleteLetterAndData  = deleteLetterAndData;
+window.deleteSingleFile     = deleteSingleFile;
 window.uploadFiles          = uploadFiles;
 window.handleDragOver       = handleDragOver;
 window.handleDragLeave      = handleDragLeave;
