@@ -170,6 +170,7 @@ function renderUploadedFiles(obj){
 
 /* ====== Loader JSON ====== */
 let lastObj = null;
+let loadInterval = null;
 async function load(){
   if (!JSON_URL) return;
   const res = await fetch(JSON_URL+'?t='+Date.now(), { cache: 'no-store' });
@@ -185,11 +186,26 @@ async function load(){
   fillView(lastObj);
   renderUploadedFiles(lastObj);
 }
-load();
+function startLoadInterval() {
+  if (loadInterval) clearInterval(loadInterval);
+  loadInterval = setInterval(load, 1000);
+}
+function stopLoadInterval() {
+  if (loadInterval) clearInterval(loadInterval);
+  loadInterval = null;
+}
+startLoadInterval();
 setInterval(load, 500);
 
 /* ====== (Opsional) fungsi edit-mode agar tombol Edit tidak error ====== */
-function toggleEditMode(){ document.querySelector('.card').classList.toggle('edit-mode'); }
+function toggleEditMode(){
+  document.querySelector('.card').classList.toggle('edit-mode');
+  if(document.querySelector('.card').classList.contains('edit-mode')){
+    stopLoadInterval(); // pause auto-refresh
+  } else {
+    startLoadInterval(); // resume auto-refresh
+  }
+}
 function cancelEdit(){ document.querySelector('.card').classList.remove('edit-mode'); }
 function saveChanges(){
   const p = lastObj.pemohon || (lastObj.pemohon = {});
@@ -207,7 +223,8 @@ function saveChanges(){
   p.provinsi = F.e.provinsi.value.trim();
   // sinkron ke tampilan
   fillView(lastObj);
-  toggleEditMode();
+  document.querySelector('.card').classList.remove('edit-mode');
+  startLoadInterval(); // resume auto-refresh
 }
 const F = { jenis_surat:E('jenis_surat'), nomor_surat:E('nomor_surat'), tanggal_surat:E('tanggal_surat'), operator:E('operator'),
   p:{ nama:E('p_nama'), nik:E('p_nik'), ttl:E('p_ttl'), agama:E('p_agama'), jk:E('p_jk'), status:E('p_status'), pekerjaan:E('p_pekerjaan'), alamat:E('p_alamat'), kelurahan:E('p_kelurahan'), kecamatan:E('p_kecamatan'), kota:E('p_kota'), prov:E('p_prov'), domisili:E('p_domisili') } };
