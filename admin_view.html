@@ -385,8 +385,13 @@ function startRealtime(){renderStatic();loadOnce(true);startPolling();}
 
 /* ===== Create / Delete Surat ===== */
 async function confirmCreateAndSend(){
-  const ok = await confirmModal('Konfirmasi Pembuatan Surat','Dengan menekan <b>Setujui & Proses</b>, sistem akan membuat dan mengirim surat berdasarkan data saat ini. Pastikan seluruh informasi sudah benar.',{okLabel:'Setujui & Proses',cancelLabel:'Tinjau Kembali',icon:'📨'});
-  if(!ok) return; await generateAndSendLetter();
+  const ok = await confirmModal(
+    'Konfirmasi Tanda Tangan',
+    'Apakah Anda yakin ingin <b>MENYETUJUI dan MENANDATANGANI</b> surat ini?<br><br>Pastikan seluruh data pemohon sudah benar sebelum melanjutkan.',
+    {okLabel:'Ya, Setujui & TTD', cancelLabel:'Batal', icon:'🖊️'}
+  );
+  if(!ok) return; 
+  await generateAndSendLetter();
 }
 async function generateAndSendLetter(){
   try{
@@ -399,8 +404,18 @@ async function generateAndSendLetter(){
   }finally{ showLoading(false); }
 }
 async function confirmDeleteAll(){
-  const ok = await showModal({icon:'🗑️',title:'Konfirmasi Penghapusan',message:'Tindakan ini akan <b>menghapus seluruh data dan surat</b> terkait referensi ini. Lanjutkan?',variant:'confirm',buttons:[{label:'Batal',variant:'secondary',value:false},{label:'Ya, Hapus Semua',danger:true,value:true}]});
-  if(!ok) return; await deleteLetterAndData();
+  const ok = await showModal({
+    icon:'⛔',
+    title:'Konfirmasi Penolakan Surat',
+    message:'Apakah Anda yakin ingin <b>MENOLAK dan MENGHAPUS</b> surat ini beserta seluruh data terkait?<br><br>Tindakan ini bersifat permanen dan tidak dapat dibatalkan.',
+    variant:'danger',
+    buttons:[
+      {label:'Batal', variant:'secondary', value:false},
+      {label:'Ya, Tolak & Hapus', danger:true, value:true}
+    ]
+  });
+  if(!ok) return; 
+  await deleteLetterAndData();
 }
 async function deleteLetterAndData(){
   try{
