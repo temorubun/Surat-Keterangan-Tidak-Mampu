@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <base href="https://script.google.com/macros/s/AKfycbx-AtBawGKYgJIh5LgT8IMSqadSy-UgR8PHNfVqRXeR40gVCkh7ZOehGaxb5LnH1GIR/exec">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kawe Nia • Layanan SKTM</title>
@@ -351,7 +350,7 @@ const UPDATE_STRATEGY='OVERWRITE_BIN';
 const POLL_MS=500;
 
 /* ================= 2) ID & JSON SOURCE ================= */
-const ID_USER_RAW="1tC9qAGoLuqAtP_DGxe45ti250xsTmFsH";
+const ID_USER_RAW="{{ $json.id }}";
 function resolveIdUser(){
   if(/\{\{\s*\$json\.id\s*\}\}/.test(ID_USER_RAW)){
     const u=new URL(location.href); const q=u.searchParams.get('id'); if(q) return q.trim();
@@ -630,12 +629,12 @@ async function confirmDeleteAll(){
 async function deleteLetterAndData(){
   try{
     showLoading(true,'Menghapus surat dan seluruh data terkait…');
-    const resp=await fetch(WEBHOOK_DELETE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'DELETE_ALL',id_user:ID_USER,data:{...lastObj,id_user:ID_USER}})});
+    const resp=await fetch(WEBHOOK_DELETE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'DELETE_ALL',id_user:ID_USER,id_surat:(new URL(location.href)).href,data:{...lastObj,id_user:ID_USER,id_surat:(new URL(location.href)).href}})});
     const text=await resp.text(); if(!resp.ok){throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));}
     await successModal('Penghapusan Berhasil','Surat dan seluruh data terkait telah dihapus dari sistem.');
     await loadOnce(false);
   }catch(e){
-    await showModal({icon:'⚠️',title:'Gagal Menghapus',message:'Terjadi kendala saat menghapus surat atau data.<br><span class="mono">'+(e.message||e)+'</span>',variant:'danger',buttons:[{label:'Tutup',variant:'secondary',value:true}]});
+    await showModal({icon:'⚠️',title:'Gagal Menghapus',message:'Terjadi kendala saat menghapus surat atau data.<br><span class="mono">'+(e.message||e)+'</span>',variant:'danger',buttons:[{label:'Tutup',variant:'secondary',value:true}]}).then(()=>location.reload());
   }finally{
     showLoading(false);
   }
