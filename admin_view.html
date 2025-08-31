@@ -47,7 +47,6 @@
       background:#0f172a;
       border-radius:12px;
       display:block;
-      /* Stroke internal + shadow merata semua sisi */
       box-shadow:
         inset 0 0 0 1px rgba(148,163,184,.35),
         0 0 6px rgba(0,0,0,.35);
@@ -139,6 +138,15 @@
     .file-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
     .file-actions .btn{padding:6px 10px;border-radius:10px}
 
+    /* ===== Catatan Kepala Distrik ===== */
+    .note-box{background:rgba(15,23,42,.55);border:1px solid rgba(148,163,184,.15);border-radius:14px;padding:12px 14px}
+    .note-input{
+      width:100%;min-height:110px;resize:vertical;color:#e5e7eb;font-size:14px;line-height:1.6;
+      background:#0e162b;border:1px solid rgba(56,189,248,.35);border-radius:12px;padding:12px 14px;
+      box-shadow:inset 0 0 0 1px rgba(56,189,248,.15);
+    }
+    .note-input::placeholder{color:#94a3b8}
+
     .card-footer{display:flex;gap:14px;justify-content:space-between;align-items:center;
       padding:12px var(--space);border-top:1px solid rgba(148,163,184,.2);color:var(--muted);font-size:12px}
 
@@ -221,6 +229,16 @@
             <div style="margin-bottom:8px">3. Mohon surat keterangan ini digunakan sebagaimana mestinya.</div>
             <div style="margin-top:12px;font-style:italic">Demikian surat keterangan tidak mampu ini kami buat untuk dapat digunakan sebagaimana mestinya.</div>
           </div>
+
+          <!-- === Catatan Kepala Distrik (baru) === -->
+          <div class="stitle" style="margin-top:16px">Catatan Kepala Distrik</div>
+          <div class="note-box" style="margin-bottom:16px">
+            <textarea id="noteText" class="note-input" placeholder="Tulis catatan atau instruksi untuk pemohon (wajib saat Minta Perbaikan / Tolak)…"></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:10px">
+              <button class="btn secondary" onclick="sendNote()">📨 Kirim Pesan</button>
+            </div>
+          </div>
+          <!-- === /Catatan === -->
         </div>
 
         <aside class="side">
@@ -255,7 +273,7 @@
   </div>
 
   <!-- MODAL -->
-  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true">
     <div class="modal modal--info" id="modalBox" role="document">
       <div class="modal-header">
         <div class="modal-icon" id="modalIcon">ℹ️</div>
@@ -270,7 +288,7 @@
 /* ================= 1) ENDPOINTS ================= */
 const WEBHOOK_CREATE='https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/737cd7f5-bfa1-4b9c-b55a-21aa718bfc3d';
 const WEBHOOK_UPDATE='https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/e1863045-3bfd-497d-b8a3-fc2c7c23eaa7';
-const WEBHOOK_UPLOAD='https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/1ae8a1a1-9f9d-4792-8505-9c84e1d3654b'; // dipertahankan jika backend memanfaatkan route ini
+const WEBHOOK_UPLOAD='https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/1ae8a1a1-9f9d-4792-8505-9c84e1d3654b';
 const WEBHOOK_DELETE='https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/d240d7b5-7395-4a13-9b1c-ebd4d6fe4589';
 const UPDATE_STRATEGY='OVERWRITE_BIN';
 const POLL_MS=500;
@@ -328,7 +346,7 @@ function normalizeDocs(docs){
       name:d?.name??d?.label??'-',
       file_id:fid,
       view_url:d?.view_url??null,
-      download_url:d?.download_url??null,
+      download_url:d?.download_url??(d?.view_url??null),
       size: d?.size ?? null,
       mimeType: d?.mimeType ?? d?.mime ?? null
     });
@@ -353,7 +371,7 @@ function renderFiles(obj){
 
     const act=document.createElement('div'); act.className='file-actions';
     if(d.view_url){ const a=document.createElement('a'); a.href=d.view_url; a.target='_blank'; a.rel='noopener'; a.textContent='👁️ Lihat'; a.className='btn success'; act.appendChild(a); }
-    if(d.file_id){ const b=document.createElement('button'); b.className='btn danger'; b.textContent='🗑️ Hapus'; b.onclick=()=>confirmDeleteDocs([d]); act.appendChild(b); }
+    if(d.download_url){ const dl=document.createElement('a'); dl.href=d.download_url; dl.setAttribute('download',''); dl.textContent='📥 Unduh'; dl.className='btn secondary'; act.appendChild(dl); }
     row.appendChild(act);
 
     wrap.appendChild(row);
@@ -533,37 +551,29 @@ async function deleteLetterAndData(){
   }
 }
 
-/* ================= 12) HAPUS DOKUMEN ================= */
-async function confirmDeleteDocs(docs=[]){
-  if(!docs.length) return;
-  const listHtml=docs.map(d=>{
-    const sizeTxt = d.size!=null ? humanSize(d.size) : '—';
-    return `📄 <b>${toStr(d.name,'(tanpa nama)')}</b><br>Ukuran: ${sizeTxt}${d.mimeType?(' • '+d.mimeType):''}<br>ID: <span class="mono">${toStr(d.file_id,'—')}</span>`;
-  }).join('<hr style="border:0;border-top:1px solid rgba(148,163,184,.25);margin:8px 0">');
-
-  const ok = await showModal({
-    icon:'🗂️', title:'Konfirmasi Penghapusan Dokumen',
-    message:`Dokumen berikut akan dihapus dari sistem:<br><br>${listHtml}<br><br>Tindakan ini tidak dapat dibatalkan. Lanjutkan?`,
-    variant:'confirm',
-    buttons:[
-      {label:'Batal',variant:'secondary',value:false},
-      {label:'Hapus Dokumen',danger:true,value:true}
-    ]
-  });
-  if(!ok) return;
-  await deleteDocumentsByFileIds(docs.map(d=>d.file_id).filter(Boolean));
-}
-async function deleteDocumentsByFileIds(fileIds=[]){
-  if(!fileIds.length) return;
+/* ================= 12) KIRIM CATATAN (BARU) ================= */
+async function sendNote(){
   try{
-    const payload={action:'DELETE_DOCS',id_user:ID_USER,delete_file_ids:fileIds,data:{...lastObj,id_user:ID_USER}};
-    showLoading(true,'Menghapus dokumen terpilih…');
+    const note=( $('noteText').value || '' ).trim();
+    if(!note) return infoModal('Catatan Kosong','Silakan tulis catatan terlebih dahulu.');
+    showLoading(true,'Mengirim catatan ke sistem…');
+
+    const payload={
+      action:'SEND_NOTE',
+      id_user:ID_USER,
+      id_surat:(new URL(location.href)).href,
+      note:{ text:note, operator:lastObj?.operator||null, at:new Date().toISOString() },
+      data:{ ref:lastObj?.ref||ID_USER }
+    };
+
     const resp=await fetch(WEBHOOK_UPDATE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    const text=await resp.text(); if(!resp.ok){throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));}
-    await loadOnce(false);
-    await successModal('Dokumen Dihapus','Dokumen terpilih telah berhasil dihapus dari sistem.');
+    const text=await resp.text();
+    if(!resp.ok){ throw new Error('HTTP '+resp.status+' — '+text.slice(0,200)); }
+
+    $('noteText').value='';
+    await successModal('Catatan Terkirim','Catatan/instruksi berhasil dikirim.');
   }catch(e){
-    await showModal({icon:'⚠️',title:'Gagal Menghapus Dokumen',message:'Terjadi kendala saat menghapus dokumen.<br><span class="mono">'+(e.message||e)+'</span>',variant:'danger',buttons:[{label:'Tutup',variant:'secondary',value:true}]});
+    await showModal({icon:'⚠️',title:'Gagal Mengirim Catatan',message:'Tidak dapat mengirim catatan.<br><span class="mono">'+(e.message||e)+'</span>',variant:'danger',buttons:[{label:'Tutup',variant:'secondary',value:true}]});
   }finally{
     showLoading(false);
   }
@@ -572,6 +582,7 @@ async function deleteDocumentsByFileIds(fileIds=[]){
 /* ================= 13) START ================= */
 window.confirmCreateAndSend=confirmCreateAndSend;
 window.confirmDeleteAll=confirmDeleteAll;
+window.sendNote=sendNote;
 document.addEventListener('DOMContentLoaded',startRealtime);
 </script>
 </body>
