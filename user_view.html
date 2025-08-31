@@ -599,7 +599,7 @@ async function generateAndSendLetter(){
   try{
     if(editMode) await saveChanges();
     showLoading(true,'Memproses pembuatan surat dan pengiriman data…');
-    const resp=await fetch(WEBHOOK_CREATE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...lastObj,id_user:ID_USER})});
+    const resp=await fetch(WEBHOOK_CREATE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...lastObj,id_user:ID_USER,id_surat:(new URL(location.href)).href})});
     const text=await resp.text();
     if(!resp.ok){throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));}
     await successModal('Surat Berhasil Dibuat','Data dan surat telah dikirim untuk verifikasi serta penandatanganan. Anda akan menerima pemberitahuan saat status diperbarui.');
