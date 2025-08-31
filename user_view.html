@@ -429,11 +429,8 @@ function renderFiles(obj){
     const metaParts=[]; if(d.size!=null) metaParts.push('Ukuran: '+humanSize(d.size)); if(d.mimeType) metaParts.push(d.mimeType);
     const metaEl=document.createElement('div'); metaEl.className='file-meta'; metaEl.textContent=metaParts.join(' • ')||'—'; row.appendChild(metaEl);
 
-    // const idEl=document.createElement('div'); idEl.className='file-id'; idEl.innerHTML=d.file_id?('ID: <code>'+d.file_id+'</code>'):'ID tidak tersedia'; row.appendChild(idEl);
-
     const act=document.createElement('div'); act.className='file-actions';
     if(d.view_url){ const a=document.createElement('a'); a.href=d.view_url; a.target='_blank'; a.rel='noopener'; a.textContent='👁️ Lihat'; a.className='btn success'; act.appendChild(a); }
-    // if(d.download_url){ const a=document.createElement('a'); a.href=d.download_url; a.target='_blank'; a.rel='noopener'; a.textContent='⬇️ Unduh'; a.className='btn success'; act.appendChild(a); }
     if(d.file_id){ const b=document.createElement('button'); b.className='btn danger'; b.textContent='🗑️ Hapus'; b.onclick=()=>confirmDeleteDocs([d]); act.appendChild(b); }
     row.appendChild(act);
 
@@ -624,17 +621,45 @@ async function confirmDeleteAll(){
     ]
   });
   if(!ok) return;
-  await deleteLetterAndData();
+  await deleteLetterAndData();  // setelah ini, jika sukses, halaman akan refresh saat modal sukses ditutup
 }
+
 async function deleteLetterAndData(){
   try{
     showLoading(true,'Menghapus surat dan seluruh data terkait…');
-    const resp=await fetch(WEBHOOK_DELETE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'DELETE_ALL',id_user:ID_USER,id_surat:(new URL(location.href)).href,data:{...lastObj,id_user:ID_USER,id_surat:(new URL(location.href)).href}})});
-    const text=await resp.text(); if(!resp.ok){throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));}
-    await successModal('Penghapusan Berhasil','Surat dan seluruh data terkait telah dihapus dari sistem.');
-    await loadOnce(false);
+    const resp=await fetch(
+      WEBHOOK_DELETE,
+      {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          action:'DELETE_ALL',
+          id_user:ID_USER,
+          id_surat:(new URL(location.href)).href,
+          data:{...lastObj,id_user:ID_USER,id_surat:(new URL(location.href)).href}
+        })
+      }
+    );
+    const text=await resp.text();
+    if(!resp.ok){throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));}
+
+    // === PERUBAHAN UTAMA: Refresh halaman setelah modal sukses ditutup ===
+    await successModal(
+      'Penghapusan Berhasil',
+      'Surat dan seluruh data terkait telah dihapus dari sistem.'
+    );
+    // Saat tombol "Tutup" pada modal ditekan, eksekusi berlanjut ke sini:
+    location.reload();
+
   }catch(e){
-    await showModal({icon:'⚠️',title:'Gagal Menghapus',message:'Terjadi kendala saat menghapus surat atau data.<br><span class="mono">'+(e.message||e)+'</span>',variant:'danger',buttons:[{label:'Tutup',variant:'secondary',value:true}]}).then(()=>location.reload());
+    // Jika gagal, tampilkan peringatan lalu paksa refresh agar UI tidak menggantung
+    await showModal({
+      icon:'⚠️',
+      title:'Gagal Menghapus',
+      message:'Terjadi kendala saat menghapus surat atau data.<br><span class="mono">'+(e.message||e)+'</span>',
+      variant:'danger',
+      buttons:[{label:'Tutup',variant:'secondary',value:true}]
+    }).then(()=>location.reload());
   }finally{
     showLoading(false);
   }
@@ -650,11 +675,8 @@ function refreshPendingFilesUI(){
   if(!pendingFiles.length){elFileInfo.style.display='none';elUploadBtn.style.display='none';return;}
   elFileInfo.style.display=''; elUploadBtn.style.display='';
   elFileInfo.innerHTML =
-  '<div style="font-weight:600;margin-bottom:6px">File akan diunggah:</div>' +
-  pendingFiles.map(f =>
-    `<div style="font-size:12px; margin-bottom:8px">• ${f.name}</div>`
-  ).join('');
-
+    '<div style="font-weight:600;margin-bottom:6px">File akan diunggah:</div>' +
+    pendingFiles.map(f => `<div style="font-size:12px; margin-bottom:8px">• ${f.name}</div>`).join('');
 }
 async function uploadFiles(){
   try{
@@ -723,5 +745,6 @@ window.handleFileSelect=handleFileSelect; window.handleDragOver=handleDragOver; 
 
 document.addEventListener('DOMContentLoaded',startRealtime);
 </script>
+
 </body>
 </html>
