@@ -16,47 +16,30 @@
       --overlay:rgba(0,0,0,.72);
     }
     *{box-sizing:border-box} html,body{height:100%}
-
-    /* ===== FULL BACKGROUND ===== */
     body{
       margin:0; color:var(--ink);
       font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
-      background:#0a0e1a;
-      min-height:100svh;
+      background:#0a0e1a; min-height:100svh;
     }
-    .bg{
-      position:fixed; inset:0; z-index:-1; pointer-events:none;
+    .bg{position:fixed; inset:0; z-index:-1; pointer-events:none;
       background:
         radial-gradient(1400px 800px at 20% -10%, #16223f 0%, transparent 60%),
         radial-gradient(1200px 700px at 90% -20%, rgba(56,189,248,.15) 0%, transparent 60%),
         linear-gradient(145deg,#0a0e1a,#0f1933 55%,#0a0e1a);
-      background-attachment:fixed,fixed,fixed;
-    }
-
+      background-attachment:fixed,fixed,fixed;}
     body,body *{min-width:0; overflow-wrap:anywhere; word-break:break-word; white-space:normal}
     .wrap{max-width:1100px;margin:40px auto;padding:0 20px}
-
     .topbar{display:flex;align-items:center;gap:16px;margin-bottom:18px}
     .brand{display:flex;align-items:center;gap:12px;min-width:0}
-
-    /* ==== Logo responsif & konsisten ==== */
     .brand img.logo{
-      width:120px;
-      aspect-ratio:1/1;
-      object-fit:contain;
-      background:#0f172a;
-      border-radius:12px;
-      display:block;
-      box-shadow:
-        inset 0 0 0 1px rgba(148,163,184,.35),
-        0 0 6px rgba(0,0,0,.35);
+      width:120px; aspect-ratio:1/1; object-fit:contain; background:#0f172a; border-radius:12px; display:block;
+      box-shadow: inset 0 0 0 1px rgba(148,163,184,.35), 0 0 6px rgba(0,0,0,.35);
     }
     .brand .title{font-weight:700;font-size:clamp(16px,2.4vw,20px)}
     .brand .sub{font-size:12px;color:var(--muted)}
     .pill{margin-left:auto;display:flex;gap:8px;align-items:center;font-size:12px;color:#cbd5e1;
       background:linear-gradient(180deg,rgba(56,189,248,.2),rgba(34,197,94,.15));
       border:1px solid rgba(148,163,184,.3);padding:6px 10px;border-radius:999px;flex-shrink:0;}
-
     .card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.02));
       border:1px solid rgba(148,163,184,.2); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden}
     .card-header{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;
@@ -70,65 +53,29 @@
     .badges{display:flex;gap:8px;flex-wrap:wrap;min-width:0;margin-top:6px}
     .badge{font-size:12px;padding:6px 10px;border-radius:999px;background:#0b1224;border:1px solid rgba(148,163,184,.26)}
     .badge.info{border-color:rgba(56,189,248,.45);background:rgba(56,189,248,.12);color:#cffafe}
-
     .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:0;min-height:360px}
     @media (max-width:960px){.grid{grid-template-columns:1fr}.side{background:transparent}.panel{border-right:none}}
-
     .panel{padding:var(--space);border-right:1px solid rgba(148,163,184,.16)} .panel:last-child{border-right:none}
     .stitle{font-size:13px;letter-spacing:.4px;text-transform:uppercase;color:#a5b4fc;font-weight:700;margin-bottom:10px}
-
-    /* ===== Data Pemohon ===== */
-    .ident{
-      display:grid;
-      grid-template-columns:160px 10px 1fr;
-      gap:6px 10px;
-      align-items:start;
-      font-size:14px;
-      background:rgba(15,23,42,.55);
-      border:1px solid rgba(148,163,184,.15);
-      border-radius:14px;
-      padding:10px 12px;
-    }
+    .ident{display:grid; grid-template-columns:160px 10px 1fr; gap:6px 10px; align-items:start; font-size:14px;
+      background:rgba(15,23,42,.55); border:1px solid rgba(148,163,184,.15); border-radius:14px; padding:10px 12px}
     @media (max-width:560px){ .ident{grid-template-columns:110px 8px 1fr} }
-    .lab{color:#cbd5e1}
-    .sep{color:#475569}
-    .val{color:#e5e7eb;font-weight:600;line-height:1.45}
+    .lab{color:#cbd5e1} .sep{color:#475569} .val{color:#e5e7eb;font-weight:600;line-height:1.45}
     .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
-
     .side{display:flex;flex-direction:column;gap:14px;padding:var(--space);
       background:linear-gradient(180deg,rgba(2,6,23,.35),rgba(2,6,23,.15))}
     .callout{border:1px solid rgba(56,189,248,.35);background:rgba(56,189,248,.1);border-radius:14px;padding:12px 14px;font-size:13px;color:#e0f2fe}
     .actions{display:flex;flex-wrap:wrap;gap:10px}
-
-    /* ===== Buttons ===== */
-    .btn{
-      appearance:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px;
-      background:#0b1224;color:var(--ink);padding:10px 14px;border-radius:12px;
-      border:1px solid rgba(148,163,184,.3);
-      display:inline-flex; align-items:center; gap:8px; justify-content:center;
-    }
+    .btn{appearance:none;border:none;cursor:pointer;font-weight:700;letter-spacing:.3px;
+      background:#0b1224;color:var(--ink);padding:10px 14px;border-radius:12px;border:1px solid rgba(148,163,184,.3);
+      display:inline-flex; align-items:center; gap:8px; justify-content:center;}
     a.btn, a.btn:link, a.btn:visited { text-decoration:none; color:inherit; }
     a.btn:hover, a.btn:focus { text-decoration:none; }
-
-    .btn.primary,.btn.success{
-      background:linear-gradient(180deg,rgba(34,197,94,.95),rgba(16,185,129,.95));
-      border-color:rgba(16,185,129,.95);
-      color:#052e1a !important;
-    }
-    .btn.secondary{
-      background:linear-gradient(180deg,rgba(56,189,248,.9),rgba(59,130,246,.9));
-      border-color:rgba(96,165,250,.95);
-      color:#06293a !important;
-    }
+    .btn.primary,.btn.success{background:linear-gradient(180deg,rgba(34,197,94,.95),rgba(16,185,129,.95));border-color:rgba(16,185,129,.95);color:#052e1a!important}
+    .btn.secondary{background:linear-gradient(180deg,rgba(56,189,248,.9),rgba(59,130,246,.9));border-color:rgba(96,165,250,.95);color:#06293a!important}
     .btn.ghost{background:transparent}
-    .btn.danger{
-      background:linear-gradient(180deg,rgba(239,68,68,.95),rgba(220,38,38,.95));
-      border-color:rgba(220,38,38,.95);
-      color:#fef2f2 !important;
-    }
+    .btn.danger{background:linear-gradient(180deg,rgba(239,68,68,.95),rgba(220,38,38,.95));border-color:rgba(220,38,38,.95);color:#fef2f2!important}
     .btn:active{transform:translateY(1px)}
-
-    /* ===== File Terunggah ===== */
     .uploaded-files-container{background:rgba(15,23,42,.55);border:1px solid rgba(148,163,184,.15);border-radius:14px;padding:14px;min-height:60px}
     .no-files-message{color:#9ca3af;font-size:13px;text-align:center;font-style:italic}
     .uploaded-file-item{display:flex;flex-direction:column;gap:8px;padding:10px 12px;background:rgba(34,197,94,.06);
@@ -137,20 +84,12 @@
     .file-meta{color:#a5b4fc;font-size:12px}
     .file-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
     .file-actions .btn{padding:6px 10px;border-radius:10px}
-
-    /* ===== Catatan Kepala Distrik ===== */
     .note-box{background:rgba(15,23,42,.55);border:1px solid rgba(148,163,184,.15);border-radius:14px;padding:12px 14px}
-    .note-input{
-      width:100%;min-height:110px;resize:vertical;color:#e5e7eb;font-size:14px;line-height:1.6;
-      background:#0e162b;border:1px solid rgba(56,189,248,.35);border-radius:12px;padding:12px 14px;
-      box-shadow:inset 0 0 0 1px rgba(56,189,248,.15);
-    }
+    .note-input{width:100%;min-height:110px;resize:vertical;color:#e5e7eb;font-size:14px;line-height:1.6;
+      background:#0e162b;border:1px solid rgba(56,189,248,.35);border-radius:12px;padding:12px 14px;box-shadow:inset 0 0 0 1px rgba(56,189,248,.15)}
     .note-input::placeholder{color:#94a3b8}
-
     .card-footer{display:flex;gap:14px;justify-content:space-between;align-items:center;
       padding:12px var(--space);border-top:1px solid rgba(148,163,184,.2);color:var(--muted);font-size:12px}
-
-    /* ===== MODAL ===== */
     .modal-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:1000;background:var(--overlay)}
     .modal{width:min(480px,92vw);border-radius:var(--modal-radius);background:var(--modal-bg);
       border:1px solid var(--modal-border);box-shadow:0 18px 50px rgba(0,0,0,.55);padding:18px 18px}
@@ -164,14 +103,11 @@
     .modal--success{box-shadow:inset 4px 0 0 0 #22c55e, 0 18px 50px rgba(0,0,0,.55)}
     .modal--confirm{box-shadow:inset 4px 0 0 0 #f59e0b, 0 18px 50px rgba(0,0,0,.55)}
     .modal--danger{box-shadow:inset 4px 0 0 0 #ef4444, 0 18px 50px rgba(0,0,0,.55)}
-
-    /* ===== LOADING ===== */
     .loading-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:900;background:rgba(2,6,23,.75)}
     .loading-box{display:flex;flex-direction:column;align-items:center;gap:14px;padding:22px;border-radius:12px;border:1px solid rgba(148,163,184,.35);background:#0f172a}
     .spinner{width:52px;height:52px;border-radius:50%;border:4px solid rgba(148,163,184,.35);border-top-color:#22c55e;animation:spin 1s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
     .loading-text{font-size:14px;color:#e5e7eb}
-
     @media print{.side{display:none} body{background:#fff} .card{border:none;box-shadow:none} .pill,.modal-overlay,.loading-overlay{display:none!important}}
   </style>
 </head>
@@ -230,7 +166,6 @@
             <div style="margin-top:12px;font-style:italic">Demikian surat keterangan tidak mampu ini kami buat untuk dapat digunakan sebagaimana mestinya.</div>
           </div>
 
-          <!-- === Catatan Kepala Distrik (baru) === -->
           <div class="stitle" style="margin-top:16px">Catatan Kepala Distrik</div>
           <div class="note-box" style="margin-bottom:16px">
             <textarea id="noteText" class="note-input" placeholder="Tulis catatan atau instruksi untuk pemohon (wajib saat Minta Perbaikan / Tolak)…"></textarea>
@@ -238,7 +173,6 @@
               <button class="btn secondary" onclick="sendNote()">📨 Kirim Pesan</button>
             </div>
           </div>
-          <!-- === /Catatan === -->
         </div>
 
         <aside class="side">
@@ -264,7 +198,6 @@
     </section>
   </div>
 
-  <!-- LOADING -->
   <div class="loading-overlay" id="loadingOverlay" aria-live="polite" aria-busy="true">
     <div class="loading-box">
       <div class="spinner" aria-hidden="true"></div>
@@ -272,7 +205,6 @@
     </div>
   </div>
 
-  <!-- MODAL -->
   <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true">
     <div class="modal modal--info" id="modalBox" role="document">
       <div class="modal-header">
@@ -285,15 +217,18 @@
   </div>
 
 <script>
-/* ================= 1) ENDPOINTS ================= */
+/* ===== Webhook Endpoints ===== */
 const WEBHOOK_CREATE='https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/737cd7f5-bfa1-4b9c-b55a-21aa718bfc3d';
 const WEBHOOK_UPDATE='https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/e1863045-3bfd-497d-b8a3-fc2c7c23eaa7';
 const WEBHOOK_UPLOAD='https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/1ae8a1a1-9f9d-4792-8505-9c84e1d3654b';
 const WEBHOOK_DELETE='https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/d240d7b5-7395-4a13-9b1c-ebd4d6fe4589';
+/* === Permintaan khusus: const PESAN untuk kirim pesan === */
+const PESAN='https://n8n-qz8tp6856ibc.bgxy.sumopod.my.id/webhook/646a0ac9-0b1c-4283-ae20-fe42f0ad4384';
+
 const UPDATE_STRATEGY='OVERWRITE_BIN';
 const POLL_MS=500;
 
-/* ================= 2) ID & JSON SOURCE ================= */
+/* ===== ID & JSON Source ===== */
 const ID_USER_RAW="{{ $json.id }}";
 function resolveIdUser(){
   if(/\{\{\s*\$json\.id\s*\}\}/.test(ID_USER_RAW)){
@@ -307,7 +242,7 @@ function resolveIdUser(){
 const ID_USER=resolveIdUser();
 const JSON_URL=ID_USER?("https://distrikwania.com/data/"+encodeURIComponent(ID_USER)):"";
 
-/* ================= 3) UTIL ================= */
+/* ===== Utils ===== */
 const $=id=>document.getElementById(id);
 const toStr=(x,fb='-')=>{const v=(x??'').toString().trim();return v.length?v:fb;}
 const isJSONResponse=res=>(res.headers.get('content-type')||'').toLowerCase().includes('application/json');
@@ -315,12 +250,11 @@ async function hashText(txt){const buf=await crypto.subtle.digest('SHA-256',new 
 function pickObj(root){if(!root)return{}; if(Array.isArray(root?.data)&&root.data[0])return root.data[0]; if(Array.isArray(root)&&root[0])return root[0]; return root;}
 function humanSize(bytes){if(!bytes&&bytes!==0)return null; const u=['B','KB','MB','GB']; let i=0, n=Number(bytes); while(n>=1024&&i<u.length-1){n/=1024;i++} return (Math.round(n*10)/10)+' '+u[i];}
 
-/* ================= 4) STATE ================= */
+/* ===== State ===== */
 let lastJSON=null,lastObj={},lastHash=null;
-let pollHandle=null;
-let firstLoadDone=false;
+let pollHandle=null, firstLoadDone=false;
 
-/* ================= 5) VIEW MAP ================= */
+/* ===== View Map ===== */
 const VIEW={
   logo:$('LogoURL'),jenis_surat:$('jenis_surat'),nomor_surat:$('nomor_surat'),
   operator:$('operator'),tanggal_surat:$('tanggal_surat'),ref:$('ref'),from:$('WAHA_Trigger_payload_from'),tahun:$('tahun'),
@@ -329,9 +263,8 @@ const VIEW={
   ket_kel:$('keterangan_kelurahan'),filesList:$('uploadedFilesList')
 };
 
-/* ================= 6) RENDER ================= */
+/* ===== Render ===== */
 function renderStatic(){ if(VIEW.tahun) VIEW.tahun.textContent=String(new Date().getFullYear()); }
-
 function normalizeDocs(docs){
   const arr=Array.isArray(docs)?docs.filter(Boolean):[];
   const seen=new Set(); const out=[];
@@ -347,13 +280,12 @@ function normalizeDocs(docs){
       file_id:fid,
       view_url:d?.view_url??null,
       download_url:d?.download_url??(d?.view_url??null),
-      size: d?.size ?? null,
-      mimeType: d?.mimeType ?? d?.mime ?? null
+      size:d?.size??null,
+      mimeType:d?.mimeType??d?.mime??null
     });
   }
   return out;
 }
-
 function renderFiles(obj){
   const wrap=VIEW.filesList; if(!wrap) return;
   const docs=normalizeDocs(obj?.dokumen);
@@ -363,21 +295,16 @@ function renderFiles(obj){
   }
   docs.forEach(d=>{
     const row=document.createElement('div'); row.className='uploaded-file-item';
-
     const nameEl=document.createElement('div'); nameEl.className='file-name'; nameEl.textContent=toStr(d.name,'(tanpa nama)'); row.appendChild(nameEl);
-
     const metaParts=[]; if(d.size!=null) metaParts.push('Ukuran: '+humanSize(d.size)); if(d.mimeType) metaParts.push(d.mimeType);
     const metaEl=document.createElement('div'); metaEl.className='file-meta'; metaEl.textContent=metaParts.join(' • ')||'—'; row.appendChild(metaEl);
-
     const act=document.createElement('div'); act.className='file-actions';
     if(d.view_url){ const a=document.createElement('a'); a.href=d.view_url; a.target='_blank'; a.rel='noopener'; a.textContent='👁️ Lihat'; a.className='btn success'; act.appendChild(a); }
     if(d.download_url){ const dl=document.createElement('a'); dl.href=d.download_url; dl.setAttribute('download',''); dl.textContent='📥 Unduh'; dl.className='btn secondary'; act.appendChild(dl); }
     row.appendChild(act);
-
     wrap.appendChild(row);
   });
 }
-
 function renderView(obj){
   if(VIEW.jenis_surat) VIEW.jenis_surat.textContent=toStr(obj.jenis_surat,'Surat Keterangan Tidak Mampu (SKTM)');
   if(VIEW.nomor_surat) VIEW.nomor_surat.textContent=toStr(obj.nomor_surat,'—');
@@ -386,12 +313,9 @@ function renderView(obj){
   if(VIEW.ref) VIEW.ref.textContent=toStr(obj.ref,ID_USER||'—');
   if(VIEW.from) VIEW.from.textContent=toStr(obj.WAHA_Trigger_payload_from,'—');
   if(VIEW.logo){ const logo=obj.LogoURL||obj.logo_url||''; if(logo) VIEW.logo.src=logo; }
-
   const p=obj.pemohon||{};
-  VIEW.nama&&(VIEW.nama.textContent=toStr(p.nama));
-  VIEW.nik&&(VIEW.nik.textContent=toStr(p.nik));
-  VIEW.ttl&&(VIEW.ttl.textContent=toStr(p.ttl));
-  VIEW.agama&&(VIEW.agama.textContent=toStr(p.agama));
+  VIEW.nama&&(VIEW.nama.textContent=toStr(p.nama)); VIEW.nik&&(VIEW.nik.textContent=toStr(p.nik));
+  VIEW.ttl&&(VIEW.ttl.textContent=toStr(p.ttl)); VIEW.agama&&(VIEW.agama.textContent=toStr(p.agama));
   VIEW.jenis_kelamin&&(VIEW.jenis_kelamin.textContent=toStr(p.jenis_kelamin));
   VIEW.status_perkawinan&&(VIEW.status_perkawinan.textContent=toStr(p.status_perkawinan));
   VIEW.pekerjaan&&(VIEW.pekerjaan.textContent=toStr(p.pekerjaan));
@@ -401,41 +325,29 @@ function renderView(obj){
   VIEW.kota_kab&&(VIEW.kota_kab.textContent=toStr(p.kota_kab));
   VIEW.provinsi&&(VIEW.provinsi.textContent=toStr(p.provinsi));
   VIEW.ket_kel&&(VIEW.ket_kel.textContent=toStr(p.kelurahan));
-
   renderFiles(obj);
 }
 
-/* ================= 7) POLLING ================= */
+/* ===== Polling ===== */
 function startPolling(){ stopPolling(); pollHandle=setInterval(()=>{ loadOnce(false); }, POLL_MS); }
 function stopPolling(){ if(pollHandle){ clearInterval(pollHandle); pollHandle=null; } }
 
-/* ================= 8) LOADING ================= */
+/* ===== Loading ===== */
 const loadingOverlay=$('loadingOverlay'), loadingText=$('loadingText');
-function showLoading(show,text){
-  if(text) loadingText.textContent=text;
-  loadingOverlay.style.display=show?'flex':'none';
-}
+function showLoading(show,text){ if(text) loadingText.textContent=text; loadingOverlay.style.display=show?'flex':'none'; }
 
-/* ================= 9) MODAL ================= */
-const modalOverlay=$('modalOverlay');
-const modalBox=$('modalBox');
-const modalIcon=$('modalIcon');
-const modalTitle=$('modalTitle');
-const modalMessage=$('modalMessage');
-const modalActions=$('modalActions');
-
+/* ===== Modal ===== */
+const modalOverlay=$('modalOverlay'), modalBox=$('modalBox');
+const modalIcon=$('modalIcon'), modalTitle=$('modalTitle'), modalMessage=$('modalMessage'), modalActions=$('modalActions');
 function showModal({icon='ℹ️',title='Informasi',message='',buttons=[{label:'Tutup',variant:'secondary',value:true}],variant='info',closable=true}={}){
   return new Promise(resolve=>{
-    modalIcon.textContent=icon;
-    modalTitle.textContent=title;
-    modalMessage.innerHTML=message;
-    modalActions.innerHTML='';
+    modalIcon.textContent=icon; modalTitle.textContent=title; modalMessage.innerHTML=message; modalActions.innerHTML='';
     modalBox.className='modal modal--'+variant;
     buttons.forEach(btn=>{
       const el=document.createElement('button');
       el.className='btn '+(btn.primary?'primary':btn.danger?'danger':btn.variant||'secondary');
       el.textContent=btn.label||'OK';
-      el.onclick=()=>{ hide(); resolve(btn.value); }
+      el.onclick=()=>{ hide(); resolve(btn.value); };
       modalActions.appendChild(el);
     });
     function onEsc(e){ if(e.key==='Escape' && closable){ hide(); resolve(null);} }
@@ -443,23 +355,13 @@ function showModal({icon='ℹ️',title='Informasi',message='',buttons=[{label:'
     modalOverlay.style.display='flex'; document.addEventListener('keydown',onEsc);
   });
 }
-function infoModal(title,message,icon='ℹ️'){
-  return showModal({icon,title,message,variant:'info',buttons:[{label:'Tutup',variant:'secondary',value:true}]});
-}
-function successModal(title,message){
-  return showModal({icon:'✅',title,message,variant:'success',buttons:[{label:'Tutup',variant:'secondary',value:true}]});
-}
+function infoModal(title,message){ return showModal({icon:'ℹ️',title,message,variant:'info',buttons:[{label:'Tutup',variant:'secondary',value:true}]}); }
+function successModal(title,message){ return showModal({icon:'✅',title,message,variant:'success',buttons:[{label:'Tutup',variant:'secondary',value:true}]}); }
 function confirmModal(title,message,{okLabel='Lanjutkan',cancelLabel='Batal',icon='❓',danger=false}={}){
-  return showModal({
-    icon,title,message,variant:'confirm',
-    buttons:[
-      {label:cancelLabel,variant:'secondary',value:false},
-      {label:okLabel,primary:!danger,danger:danger,value:true}
-    ]
-  });
+  return showModal({icon,title,message,variant:'confirm',buttons:[{label:cancelLabel,variant:'secondary',value:false},{label:okLabel,primary:!danger,danger, value:true}]});
 }
 
-/* ================= 10) LOAD JSON ================= */
+/* ===== Load JSON ===== */
 async function loadOnce(showLoader=true){
   try{
     if(!JSON_URL){ console.warn('ID_USER kosong.'); return; }
@@ -481,105 +383,69 @@ async function loadOnce(showLoader=true){
 }
 function startRealtime(){renderStatic();loadOnce(true);startPolling();}
 
-/* ================= 11) CREATE / DELETE ================= */
+/* ===== Create / Delete Surat ===== */
 async function confirmCreateAndSend(){
-  const ok = await confirmModal(
-    'Konfirmasi Pembuatan Surat',
-    'Dengan menekan <b>Setujui & Proses</b>, Anda memberi kuasa kepada sistem untuk membuat dokumen surat berdasarkan data yang tampil saat ini dan mengirimkannya ke kantor. Pastikan seluruh informasi sudah diverifikasi.',
-    {okLabel:'Setujui & Proses',cancelLabel:'Tinjau Kembali',icon:'📨'}
-  );
-  if(!ok) return;
-  await generateAndSendLetter();
+  const ok = await confirmModal('Konfirmasi Pembuatan Surat','Dengan menekan <b>Setujui & Proses</b>, sistem akan membuat dan mengirim surat berdasarkan data saat ini. Pastikan seluruh informasi sudah benar.',{okLabel:'Setujui & Proses',cancelLabel:'Tinjau Kembali',icon:'📨'});
+  if(!ok) return; await generateAndSendLetter();
 }
 async function generateAndSendLetter(){
   try{
     showLoading(true,'Memproses pembuatan surat dan pengiriman data…');
-    const resp=await fetch(WEBHOOK_CREATE,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({...lastObj,id_user:ID_USER,id_surat:(new URL(location.href)).href})
-    });
-    const text=await resp.text();
-    if(!resp.ok){throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));}
-    await successModal('Surat Berhasil Dibuat','Data dan surat telah dikirim untuk verifikasi serta penandatanganan. Anda akan menerima pemberitahuan saat status diperbarui.');
+    const resp=await fetch(WEBHOOK_CREATE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...lastObj,id_user:ID_USER,id_surat:(new URL(location.href)).href})});
+    const text=await resp.text(); if(!resp.ok){throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));}
+    await successModal('Surat Berhasil Dibuat','Data dan surat telah dikirim untuk verifikasi serta penandatanganan.');
   }catch(e){
     await showModal({icon:'⚠️',title:'Gagal Membuat Surat',message:'Terjadi kendala saat membuat atau mengirim surat.<br><span class="mono">'+(e.message||e)+'</span>',variant:'danger',buttons:[{label:'Tutup',variant:'secondary',value:true}]});
-  }finally{
-    showLoading(false);
-  }
+  }finally{ showLoading(false); }
 }
-
 async function confirmDeleteAll(){
-  const ok = await showModal({
-    icon:'🗑️',title:'Konfirmasi Penghapusan',
-    message:'Tindakan ini akan <b>menghapus seluruh data dan surat</b> terkait referensi ini dari sistem. Langkah ini tidak dapat dibatalkan. Apakah Anda yakin?',
-    variant:'confirm',
-    buttons:[
-      {label:'Batal',variant:'secondary',value:false},
-      {label:'Ya, Hapus Semua',danger:true,value:true}
-    ]
-  });
-  if(!ok) return;
-  await deleteLetterAndData();
+  const ok = await showModal({icon:'🗑️',title:'Konfirmasi Penghapusan',message:'Tindakan ini akan <b>menghapus seluruh data dan surat</b> terkait referensi ini. Lanjutkan?',variant:'confirm',buttons:[{label:'Batal',variant:'secondary',value:false},{label:'Ya, Hapus Semua',danger:true,value:true}]});
+  if(!ok) return; await deleteLetterAndData();
 }
 async function deleteLetterAndData(){
   try{
     showLoading(true,'Menghapus surat dan seluruh data terkait…');
-    const resp=await fetch(WEBHOOK_DELETE,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        action:'DELETE_ALL',
-        id_user:ID_USER,
-        id_surat:(new URL(location.href)).href,
-        data:{...lastObj,id_user:ID_USER,id_surat:(new URL(location.href)).href}
-      })
-    });
-    const text=await resp.text();
-    if(!resp.ok){throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));}
-    await successModal('Penghapusan Berhasil','Surat dan seluruh data terkait telah dihapus dari sistem.');
-    location.reload();
+    const resp=await fetch(WEBHOOK_DELETE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'DELETE_ALL',id_user:ID_USER,id_surat:(new URL(location.href)).href,data:{...lastObj,id_user:ID_USER,id_surat:(new URL(location.href)).href}})});
+    const text=await resp.text(); if(!resp.ok){throw new Error('HTTP '+resp.status+' — '+text.slice(0,200));}
+    await successModal('Penghapusan Berhasil','Surat dan seluruh data terkait telah dihapus dari sistem.'); location.reload();
   }catch(e){
-    await showModal({
-      icon:'⚠️',
-      title:'Gagal Menghapus',
-      message:'Terjadi kendala saat menghapus surat atau data.<br><span class="mono">'+(e.message||e)+'</span>',
-      variant:'danger',
-      buttons:[{label:'Tutup',variant:'secondary',value:true}]
-    }).then(()=>location.reload());
-  }finally{
-    showLoading(false);
-  }
+    await showModal({icon:'⚠️',title:'Gagal Menghapus',message:'Terjadi kendala saat menghapus surat atau data.<br><span class="mono">'+(e.message||e)+'</span>',variant:'danger',buttons:[{label:'Tutup',variant:'secondary',value:true}]}).then(()=>location.reload());
+  }finally{ showLoading(false); }
 }
 
-/* ================= 12) KIRIM CATATAN (BARU) ================= */
+/* ===== Kirim Catatan / Pesan ===== */
 async function sendNote(){
   try{
-    const note=( $('noteText').value || '' ).trim();
-    if(!note) return infoModal('Catatan Kosong','Silakan tulis catatan terlebih dahulu.');
-    showLoading(true,'Mengirim catatan ke sistem…');
+    const textNote=( $('noteText').value || '' ).trim();
+    if(!textNote) return infoModal('Catatan Kosong','Silakan tulis catatan terlebih dahulu.');
+
+    // Optional: tampilkan popup konfirmasi cepat
+    const ok = await confirmModal('Kirim Pesan?','Pesan berikut akan dikirim ke pemohon:<br><br><i>"'+textNote.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'"</i>',{okLabel:'Kirim Sekarang',cancelLabel:'Batal',icon:'✉️'});
+    if(!ok) return;
+
+    showLoading(true,'Mengirim pesan…');
 
     const payload={
-      action:'SEND_NOTE',
-      id_user:ID_USER,
-      id_surat:(new URL(location.href)).href,
-      note:{ text:note, operator:lastObj?.operator||null, at:new Date().toISOString() },
-      data:{ ref:lastObj?.ref||ID_USER }
+      id_user: ID_USER,
+      id_surat: (new URL(location.href)).href,
+      message: textNote,
+      json: lastObj || {},      // eksplisit "data json"
+      data: lastObj || {},      // redundansi aman untuk flow n8n
+      meta: { ref: lastObj?.ref || ID_USER, operator: lastObj?.operator || null, at: new Date().toISOString() }
     };
 
-    const resp=await fetch(WEBHOOK_UPDATE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    const text=await resp.text();
-    if(!resp.ok){ throw new Error('HTTP '+resp.status+' — '+text.slice(0,200)); }
+    const resp=await fetch(PESAN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const bodyText=await resp.text();
+    if(!resp.ok){ throw new Error('HTTP '+resp.status+' — '+bodyText.slice(0,200)); }
 
     $('noteText').value='';
-    await successModal('Catatan Terkirim','Catatan/instruksi berhasil dikirim.');
+    await successModal('Pesan Terkirim','Catatan/instruksi berhasil dikirim ke sistem.');
   }catch(e){
-    await showModal({icon:'⚠️',title:'Gagal Mengirim Catatan',message:'Tidak dapat mengirim catatan.<br><span class="mono">'+(e.message||e)+'</span>',variant:'danger',buttons:[{label:'Tutup',variant:'secondary',value:true}]});
-  }finally{
-    showLoading(false);
-  }
+    await showModal({icon:'⚠️',title:'Gagal Mengirim Pesan',message:'Tidak dapat mengirim pesan.<br><span class="mono">'+(e.message||e)+'</span>',variant:'danger',buttons:[{label:'Tutup',variant:'secondary',value:true}]});
+  }finally{ showLoading(false); }
 }
 
-/* ================= 13) START ================= */
+/* ===== Start ===== */
 window.confirmCreateAndSend=confirmCreateAndSend;
 window.confirmDeleteAll=confirmDeleteAll;
 window.sendNote=sendNote;
